@@ -1,4 +1,6 @@
-use std::{ops};
+use std::ops;
+
+use num::{Num, ToPrimitive, pow};
 
 use crate::vector::vector::Vector;
 
@@ -9,22 +11,29 @@ pub struct Vector2D {
 }
 
 impl Vector2D {
-    pub fn new(x: f32, y: f32) -> Vector2D {
-        Vector2D { x, y }
+    pub fn new<T, U>(x: T, y: U) -> Vector2D
+    where
+        T: ToPrimitive,
+        U: ToPrimitive,
+    {
+        Vector2D {
+            x: x.to_f32().expect("Not a number"),
+            y: y.to_f32().expect("Not a number"),
+        }
     }
 }
 
 // Vector utilities
 impl Vector for Vector2D {
     type VectorType = Vector2D;
-    
+
     fn length(&self) -> f32 {
-        f32::sqrt(self.x * self.x + self.y * self.y)
+        f32::sqrt(pow(self.x, 2) + pow(self.y, 2))
     }
 
     fn normalize(&self) -> Vector2D {
         let length = self.length();
-        *self * (1./length)
+        *self * (1. / length)
     }
 
     fn dot(&self, other: &Vector2D) -> f32 {
@@ -37,10 +46,10 @@ impl ops::Add<Vector2D> for Vector2D {
     type Output = Vector2D;
 
     fn add(self, other: Vector2D) -> Vector2D {
-        Vector2D {
-            x: self.x + other.x,
-            y: self.y + other.y,
-        }
+        Vector2D::new(
+            self.x + other.x, 
+            self.y + other.y
+        )
     }
 }
 
@@ -99,7 +108,7 @@ mod tests {
         assert_eq!(2. + vec, Vector2D { x: 12., y: 22. });
         assert_eq!(vec + 2., Vector2D { x: 12., y: 22. });
     }
-    
+
     #[test]
     fn magnitude_test() {
         let a: Vector2D = Vector2D { x: 3., y: 4. };
@@ -116,20 +125,20 @@ mod tests {
 
     #[test]
     fn hadamard_product_test() {
-        let a: Vector2D = Vector2D::new(10., 2.);
+        let a: Vector2D = Vector2D::new(10, 2.);
         let b: Vector2D = Vector2D::new(4., 2.);
         let res: Vector2D = Vector2D::new(40., 4.);
         assert_eq!(a * b, res);
         assert_eq!(b * a, res);
     }
 
-
     #[test]
     fn normalize_test() {
         let a: Vector2D = Vector2D { x: 3., y: 4. };
-        let b: Vector2D = Vector2D { x: 3./5., y: 4./5. };
+        let b: Vector2D = Vector2D {
+            x: 3. / 5.,
+            y: 4. / 5.,
+        };
         assert_eq!(a.normalize(), b);
     }
-    
-
 }

@@ -13,20 +13,18 @@ impl<T> Grid<T> {
         let index: usize = y * self.width + x;
         self.data.get(index)
     }
-    
+
     pub fn set(&mut self, value: T, x: usize, y: usize) -> bool {
         let index: usize = y * self.width + x;
         if index >= self.data.len() || y >= self.height || x >= self.width {
             return false;
         }
-        
+
         self.data[index] = value;
         true
     }
 
-    pub fn clear(&mut self) {
-        
-    }
+    pub fn clear(&mut self) {}
 }
 
 impl<T: Clone> Grid<T> {
@@ -34,7 +32,7 @@ impl<T: Clone> Grid<T> {
         Self {
             data: vec![fill_value; width * height],
             width,
-            height
+            height,
         }
     }
 }
