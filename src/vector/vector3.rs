@@ -1,4 +1,4 @@
-use std::ops::{self, Index};
+use std::ops::{self, Index, Add, Mul, Sub};
 
 use num::{ToPrimitive, pow};
 
@@ -55,7 +55,7 @@ impl Vector for Vector3 {
 }
 
 // Vector addition
-impl ops::Add<Vector3> for Vector3 {
+impl Add<Vector3> for Vector3 {
     type Output = Vector3;
 
     fn add(self, other: Vector3) -> Vector3 {
@@ -64,7 +64,7 @@ impl ops::Add<Vector3> for Vector3 {
 }
 
 // Vector subtraction
-impl ops::Sub<Vector3> for Vector3 {
+impl Sub<Vector3> for Vector3 {
     type Output = Vector3;
 
     fn sub(self, other: Vector3) -> Vector3 {
@@ -74,14 +74,14 @@ impl ops::Sub<Vector3> for Vector3 {
 
 
 // Scalar-vector addition
-impl ops::Add<f32> for Vector3 {
+impl Add<f32> for Vector3 {
     type Output = Vector3;
     fn add(self, scalar: f32) -> Vector3 {
         Vector3::new(scalar + self.x, scalar + self.y, scalar + self.z)
     }
 }
 
-impl ops::Add<Vector3> for f32 {
+impl Add<Vector3> for f32 {
     type Output = Vector3;
     fn add(self, vec: Vector3) -> Vector3 {
         Vector3::new(self + vec.x, self + vec.y, self + vec.y)
@@ -89,7 +89,7 @@ impl ops::Add<Vector3> for f32 {
 }
 
 // Hadamard product
-impl ops::Mul<Vector3> for Vector3 {
+impl Mul<Vector3> for Vector3 {
     type Output = Vector3;
     fn mul(self, other: Vector3) -> Vector3 {
         Vector3::new(self.x * other.x, self.y * other.y, self.z * other.z)
@@ -97,14 +97,14 @@ impl ops::Mul<Vector3> for Vector3 {
 }
 
 // Scalar-Vector multiplication
-impl ops::Mul<f32> for Vector3 {
+impl Mul<f32> for Vector3 {
     type Output = Vector3;
     fn mul(self, scalar: f32) -> Vector3 {
         Vector3::new(scalar * self.x, scalar * self.y, scalar * self.z)
     }
 }
 
-impl ops::Mul<Vector3> for f32 {
+impl Mul<Vector3> for f32 {
     type Output = Vector3;
     fn mul(self, vec: Vector3) -> Vector3 {
         Vector3::new(self * vec.x, self * vec.y, self * vec.z)
