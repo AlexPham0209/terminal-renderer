@@ -8,8 +8,3 @@ pub trait Vector {
     fn dot(&self, other: &Self::VectorType) -> f32;
 }
 
-pub trait CrossProduct {
-    type VectorType;
-    type Output;
-    fn cross(&self, other: &Self::VectorType) -> Self::Output;
-}
