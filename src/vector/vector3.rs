@@ -1,4 +1,4 @@
-use std::ops::{self, Add, Index, Mul, Sub};
+use std::ops::{self, Add, Index, Mul, Neg, Sub};
 
 use num::{ToPrimitive, pow};
 
@@ -65,7 +65,7 @@ impl Sub<Vector3> for Vector3 {
     type Output = Vector3;
 
     fn sub(self, other: Vector3) -> Vector3 {
-        Vector3::new(other.x - self.x, other.y - self.y, other.z - self.z)
+        Vector3::new(self.x - other.x, self.y - other.y, self.z - other.z)
     }
 }
 
@@ -123,6 +123,15 @@ impl Mul<Vector3> for f32 {
     }
 }
 
+impl Neg for Vector3 {
+    type Output = Vector3;
+
+    fn neg(self) -> Vector3 {
+        Vector3::new(-self.x, -self.y, -self.z)
+    }
+}
+
+
 // Allows us to index instead of using members
 impl Index<usize> for Vector3 {
     type Output = f32;
@@ -160,6 +169,46 @@ mod tests {
         );
 
         assert!((a.normalize() - b).length() <= 0.001);
+    }
+
+    #[test]
+    fn scalar_subtraction_test() {
+        let vec: Vector3 = Vector3::new(10., 20., 5.);
+        let res: Vector3 = Vector3::new(8, 18, 3);
+        assert_eq!(2. - vec, -res);
+        assert_eq!(vec - 2., res);
+    }
+
+    #[test]
+    fn negation_test() {
+        let vec: Vector3 = Vector3::new(10., 20., 5.);
+        let res: Vector3 = Vector3::new(-10., -20., -5.);
+        assert_eq!(-vec, res);
+    }
+
+    #[test]
+    fn vector_addition_test() {
+        let a: Vector3 = Vector3::new(10., 39., 29.);
+        let b: Vector3 = Vector3::new(2., 520., 25.);
+        let res: Vector3 = Vector3::new(12, 559, 54);
+        assert_eq!(a + b, res);
+        assert_eq!(b + a, res);
+    }
+
+    #[test]
+    fn vector_subtraction_test() {
+        let a: Vector3 = Vector3::new(10., 39., 23.);
+        let b: Vector3 = Vector3::new(3., 519., 4.);
+        let res: Vector3 = Vector3::new(7, -480, 19);
+        assert_eq!(a - b, res);
+        assert_eq!(b - a, -res);
+    }
+
+
+    #[test]
+    fn magnitude_test() {
+        let a: Vector3 = Vector3::new(10., 18., 2.);
+        assert_eq!(a.length(), f32::sqrt(428.));
     }
 
     #[test]

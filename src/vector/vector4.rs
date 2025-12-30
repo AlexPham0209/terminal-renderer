@@ -1,4 +1,4 @@
-use std::ops::{self, Add, Index, Mul, Sub};
+use std::ops::{self, Add, Index, Mul, Neg, Sub};
 
 use num::{ToPrimitive, pow};
 
@@ -118,6 +118,13 @@ impl Sub<Vector4> for f32 {
     }
 }
 
+impl Neg for Vector4 {
+    type Output = Vector4;
+
+    fn neg(self) -> Vector4 {
+        Vector4::new(-self.x, -self.y, -self.z, -self.w)
+    }
+}
 
 // Hadamard product
 impl Mul<Vector4> for Vector4 {

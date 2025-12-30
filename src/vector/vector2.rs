@@ -1,4 +1,4 @@
-use std::ops::{self, Add, Index, Mul, Sub};
+use std::ops::{self, Add, Index, Mul, Neg, Sub};
 
 use num::{Num, ToPrimitive, pow};
 
@@ -112,6 +112,14 @@ impl Mul<Vector2> for f32 {
     }
 }
 
+impl Neg for Vector2 {
+    type Output = Vector2;
+
+    fn neg(self) -> Vector2 {
+        Vector2::new(-self.x, -self.y)
+    }
+}
+
 // Allows us to index instead of using members
 impl Index<usize> for Vector2 {
     type Output = f32;
@@ -139,9 +147,44 @@ mod tests {
     #[test]
     fn scalar_addition_test() {
         let vec: Vector2 = Vector2::new(10., 20.);
-        assert_eq!(2. + vec, Vector2 { x: 12., y: 22. });
-        assert_eq!(vec + 2., Vector2 { x: 12., y: 22. });
+        let res = Vector2::new(12., 22.);
+        assert_eq!(2. + vec, res);
+        assert_eq!(vec + 2., res);
     }
+
+    #[test]
+    fn scalar_subtraction_test() {
+        let vec: Vector2 = Vector2::new(10., 20.);
+        let res: Vector2 = Vector2::new(8, 18);
+        assert_eq!(2. - vec, -res);
+        assert_eq!(vec - 2., res);
+    }
+
+    #[test]
+    fn vector_addition_test() {
+        let a: Vector2 = Vector2::new(10., 39.);
+        let b: Vector2 = Vector2::new(2., 520.);
+        let res: Vector2 = Vector2::new(12, 559);
+        assert_eq!(a + b, res);
+        assert_eq!(b + a, res);
+    }
+
+    #[test]
+    fn vector_subtraction_test() {
+        let a: Vector2 = Vector2::new(10., 39.);
+        let b: Vector2 = Vector2::new(3., 519.);
+        let res: Vector2 = Vector2::new(7, -480);
+        assert_eq!(a - b, res);
+        assert_eq!(b - a, -res);
+    }
+
+    #[test]
+    fn negation_test() {
+        let vec: Vector2 = Vector2::new(10., 20.);
+        let res: Vector2 = Vector2::new(-10., -20.);
+        assert_eq!(-vec, res);
+    }
+
 
     #[test]
     fn magnitude_test() {
@@ -168,11 +211,8 @@ mod tests {
 
     #[test]
     fn normalize_test() {
-        let a: Vector2 = Vector2 { x: 3., y: 4. };
-        let b: Vector2 = Vector2 {
-            x: 3. / 5.,
-            y: 4. / 5.,
-        };
+        let a: Vector2 = Vector2::new(3, 4);
+        let b: Vector2 = Vector2::new(3./5., 4./5.);
         assert_eq!(a.normalize(), b);
     }
 
