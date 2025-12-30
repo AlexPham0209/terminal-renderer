@@ -1,10 +1,13 @@
-use std::ops::{self, Index, Add, Mul, Sub};
+use std::ops::{self, Add, Index, Mul, Sub};
 
 use num::{ToPrimitive, pow};
 
-use crate::{Vector2, vector::{vector::Vector, vector3::Vector3}};
+use crate::{
+    Vector2,
+    vector::{vector::Vector, vector3::Vector3},
+};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vector4 {
     pub x: f32,
     pub y: f32,
@@ -29,11 +32,10 @@ impl Vector4 {
     }
 
     pub fn to_homogenous(v: Vector3) -> Vector4 {
-        let Vector3 { x, y, z} = v;
+        let Vector3 { x, y, z } = v;
         Vector4::new(x, y, z, 1.0)
     }
 }
-
 
 impl Vector for Vector4 {
     type VectorType = Vector4;
@@ -52,13 +54,17 @@ impl Vector for Vector4 {
     }
 }
 
-
 // Vector addition
 impl Add<Vector4> for Vector4 {
     type Output = Vector4;
 
     fn add(self, other: Vector4) -> Vector4 {
-        Vector4::new(other.x + self.x, other.y + self.y, other.z + self.z, other.w + self.w)
+        Vector4::new(
+            other.x + self.x,
+            other.y + self.y,
+            other.z + self.z,
+            other.w + self.w,
+        )
     }
 }
 
@@ -67,16 +73,25 @@ impl Sub<Vector4> for Vector4 {
     type Output = Vector4;
 
     fn sub(self, other: Vector4) -> Vector4 {
-        Vector4::new(other.x - self.x, other.y - self.y, other.z - self.z, other.w - self.w)
+        Vector4::new(
+            other.x - self.x,
+            other.y - self.y,
+            other.z - self.z,
+            other.w - self.w,
+        )
     }
 }
-
 
 // Scalar-vector addition
 impl Add<f32> for Vector4 {
     type Output = Vector4;
     fn add(self, scalar: f32) -> Vector4 {
-        Vector4::new(scalar + self.x, scalar + self.y, scalar + self.z, scalar + self.w)
+        Vector4::new(
+            scalar + self.x,
+            scalar + self.y,
+            scalar + self.z,
+            scalar + self.w,
+        )
     }
 }
 
@@ -91,7 +106,12 @@ impl Add<Vector4> for f32 {
 impl Mul<Vector4> for Vector4 {
     type Output = Vector4;
     fn mul(self, other: Vector4) -> Vector4 {
-        Vector4::new(self.x * other.x, self.y * other.y, self.z * other.z, self.w * other.w)
+        Vector4::new(
+            self.x * other.x,
+            self.y * other.y,
+            self.z * other.z,
+            self.w * other.w,
+        )
     }
 }
 
@@ -99,7 +119,12 @@ impl Mul<Vector4> for Vector4 {
 impl Mul<f32> for Vector4 {
     type Output = Vector4;
     fn mul(self, scalar: f32) -> Vector4 {
-        Vector4::new(scalar * self.x, scalar * self.y, scalar * self.z, scalar * self.w)
+        Vector4::new(
+            scalar * self.x,
+            scalar * self.y,
+            scalar * self.z,
+            scalar * self.w,
+        )
     }
 }
 
@@ -120,7 +145,7 @@ impl Index<usize> for Vector4 {
             1 => &self.y,
             2 => &self.z,
             3 => &self.w,
-            _ => panic!("Index out of range")
-        }       
+            _ => panic!("Index out of range"),
+        }
     }
 }

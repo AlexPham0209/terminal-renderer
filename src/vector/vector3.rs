@@ -1,11 +1,8 @@
-use std::ops::{self, Index, Add, Mul, Sub};
+use std::ops::{self, Add, Index, Mul, Sub};
 
 use num::{ToPrimitive, pow};
 
-use crate::{
-    Vector2,
-    vector::vector::{Vector},
-};
+use crate::{Vector2, vector::vector::Vector};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vector3 {
@@ -48,7 +45,7 @@ impl Vector for Vector3 {
         let length = self.length();
         *self * (1. / length)
     }
-    
+
     fn dot(&self, other: &Self::VectorType) -> f32 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
@@ -72,7 +69,6 @@ impl Sub<Vector3> for Vector3 {
     }
 }
 
-
 // Scalar-vector addition
 impl Add<f32> for Vector3 {
     type Output = Vector3;
@@ -85,6 +81,22 @@ impl Add<Vector3> for f32 {
     type Output = Vector3;
     fn add(self, vec: Vector3) -> Vector3 {
         Vector3::new(self + vec.x, self + vec.y, self + vec.y)
+    }
+}
+
+// Scalar-vector subtraction
+impl Sub<f32> for Vector3 {
+    type Output = Vector3;
+
+    fn sub(self, scalar: f32) -> Vector3 {
+        Vector3::new(self.x - scalar, self.y - scalar, self.z - scalar)
+    }
+}
+
+impl Sub<Vector3> for f32 {
+    type Output = Vector3;
+    fn sub(self, vec: Vector3) -> Vector3 {
+        Vector3::new(self - vec.x, self - vec.y, self - vec.z)
     }
 }
 
@@ -120,8 +132,8 @@ impl Index<usize> for Vector3 {
             0 => &self.x,
             1 => &self.y,
             2 => &self.z,
-            _ => panic!("Index out of range")
-        }       
+            _ => panic!("Index out of range"),
+        }
     }
 }
 
@@ -141,8 +153,12 @@ mod tests {
     #[test]
     fn normalize_test() {
         let a: Vector3 = Vector3::new(10, 5, 20);
-        let b: Vector3 = Vector3::new(2. / f32::sqrt(21.), 1. / f32::sqrt(21.), 4. / f32::sqrt(21.));
-        
+        let b: Vector3 = Vector3::new(
+            2. / f32::sqrt(21.),
+            1. / f32::sqrt(21.),
+            4. / f32::sqrt(21.),
+        );
+
         assert!((a.normalize() - b).length() <= 0.001);
     }
 
@@ -154,7 +170,7 @@ mod tests {
 
         assert_eq!(a.dot(&b), res);
     }
-    
+
     #[test]
     fn cross_product_test() {
         let a = Vector3::new(1, 2, 3);

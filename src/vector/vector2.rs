@@ -1,4 +1,4 @@
-use std::ops::{self, Index, Add, Mul, Sub};
+use std::ops::{self, Add, Index, Mul, Sub};
 
 use num::{Num, ToPrimitive, pow};
 
@@ -46,10 +46,7 @@ impl Add<Vector2> for Vector2 {
     type Output = Vector2;
 
     fn add(self, other: Vector2) -> Vector2 {
-        Vector2::new(
-            self.x + other.x, 
-            self.y + other.y
-        )
+        Vector2::new(self.x + other.x, self.y + other.y)
     }
 }
 
@@ -57,10 +54,7 @@ impl Sub<Vector2> for Vector2 {
     type Output = Vector2;
 
     fn sub(self, other: Vector2) -> Vector2 {
-        Vector2::new(
-            self.x - other.x, 
-            self.y - other.y
-        )
+        Vector2::new(self.x - other.x, self.y - other.y)
     }
 }
 
@@ -76,6 +70,22 @@ impl Add<Vector2> for f32 {
     type Output = Vector2;
     fn add(self, vec: Vector2) -> Vector2 {
         Vector2::new(self + vec.x, self + vec.y)
+    }
+}
+
+// Scalar-vector subtraction
+impl Sub<f32> for Vector2 {
+    type Output = Vector2;
+
+    fn sub(self, scalar: f32) -> Vector2 {
+        Vector2::new(self.x - scalar, self.y - scalar)
+    }
+}
+
+impl Sub<Vector2> for f32 {
+    type Output = Vector2;
+    fn sub(self, vec: Vector2) -> Vector2 {
+        Vector2::new(self - vec.x, self - vec.y)
     }
 }
 
@@ -110,8 +120,8 @@ impl Index<usize> for Vector2 {
         match index {
             0 => &self.x,
             1 => &self.y,
-            _ => panic!("Index out of range")
-        }       
+            _ => panic!("Index out of range"),
+        }
     }
 }
 

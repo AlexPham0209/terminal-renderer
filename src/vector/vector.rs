@@ -7,4 +7,3 @@ pub trait Vector {
     fn normalize(&self) -> Self::VectorType;
     fn dot(&self, other: &Self::VectorType) -> f32;
 }
-
