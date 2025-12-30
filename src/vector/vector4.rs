@@ -102,6 +102,23 @@ impl Add<Vector4> for f32 {
     }
 }
 
+// Scalar-vector subtraction
+impl Sub<f32> for Vector4 {
+    type Output = Vector4;
+
+    fn sub(self, scalar: f32) -> Vector4 {
+        Vector4::new(self.x - scalar, self.y - scalar, self.z - scalar, self.w - scalar)
+    }
+}
+
+impl Sub<Vector4> for f32 {
+    type Output = Vector4;
+    fn sub(self, vec: Vector4) -> Vector4 {
+        Vector4::new(self - vec.x, self - vec.y, self - vec.z, self - vec.w)
+    }
+}
+
+
 // Hadamard product
 impl Mul<Vector4> for Vector4 {
     type Output = Vector4;

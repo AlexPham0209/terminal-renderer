@@ -6,7 +6,6 @@ use crate::{Vector2, matrix::matrix::Matrix, vector::vector3::Vector3};
 pub struct Matrix2 {
     x: Vector2,
     y: Vector2,
-
 }
 
 impl Matrix2 {
@@ -17,18 +16,15 @@ impl Matrix2 {
     }
 
     fn from_rows(x: Vector2, y: Vector2) -> Self {
-        Self { 
-            x: Vector2::new(x[0], y[0]), 
-            y: Vector2::new(x[1], y[1])
+        Self {
+            x: Vector2::new(x[0], y[0]),
+            y: Vector2::new(x[1], y[1]),
         }
-    } 
-    
+    }
+
     pub fn from_cols(x: Vector2, y: Vector2) -> Self {
-        Self { 
-            x, 
-            y,
-        }
-    } 
+        Self { x, y }
+    }
 }
 
 impl Matrix for Matrix2 {
@@ -38,7 +34,7 @@ impl Matrix for Matrix2 {
         match index {
             0 => Vector2::new(self.x[0], self.y[0]),
             1 => Vector2::new(self.x[1], self.y[1]),
-            _ => panic!("Out of range")
+            _ => panic!("Out of range"),
         }
     }
 
@@ -46,26 +42,24 @@ impl Matrix for Matrix2 {
         match index {
             0 => self.x,
             1 => self.y,
-            _ => panic!("Out of range")
+            _ => panic!("Out of range"),
         }
     }
 
     fn transpose(&self) -> Matrix2 {
         Matrix2::from_rows(self.x, self.y)
     }
-
 }
 
 impl Index<usize> for Matrix2 {
     type Output = Vector2;
 
-
     fn index(&self, index: usize) -> &Vector2 {
         match index {
             0 => &self.x,
             1 => &self.y,
-            _ => panic!("Index out of range")
-        }       
+            _ => panic!("Index out of range"),
+        }
     }
 }
 
@@ -169,7 +163,7 @@ mod tests {
         assert_eq!(mat[1][0], 7.0);
         assert_eq!(mat[1][1], 2.0);
     }
-    
+
     #[test]
     fn transpose_test() {
         let a = Matrix2::new(1.0, 2.0, 3.0, 4.0);

@@ -48,7 +48,7 @@ impl Matrix for Matrix3 {
             0 => Vector3::new(self.x[0], self.y[0], self.z[0]),
             1 => Vector3::new(self.x[1], self.y[1], self.z[1]),
             2 => Vector3::new(self.x[2], self.y[2], self.z[2]),
-            _ => panic!("Out of range")
+            _ => panic!("Out of range"),
         }
     }
 
@@ -57,7 +57,7 @@ impl Matrix for Matrix3 {
             0 => self.x,
             1 => self.y,
             2 => self.z,
-            _ => panic!("Out of range")
+            _ => panic!("Out of range"),
         }
     }
 
@@ -74,8 +74,8 @@ impl Index<usize> for Matrix3 {
             0 => &self.x,
             1 => &self.y,
             2 => &self.z,
-            _ => panic!("Index out of range")
-        }       
+            _ => panic!("Index out of range"),
+        }
     }
 }
 
@@ -147,7 +147,6 @@ impl Sub<Matrix3> for f32 {
     }
 }
 
-
 // Matrix Addition
 impl Add<Matrix3> for Matrix3 {
     type Output = Matrix3;
@@ -160,7 +159,6 @@ impl Add<Matrix3> for Matrix3 {
     }
 }
 
-
 // Matrix Subtraction
 impl Sub<Matrix3> for Matrix3 {
     type Output = Matrix3;
@@ -172,4 +170,3 @@ impl Sub<Matrix3> for Matrix3 {
         Matrix3::from_cols(x, y, z)
     }
 }
-
