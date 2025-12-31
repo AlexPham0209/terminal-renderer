@@ -1,4 +1,4 @@
-use std::ops::{Add, Index, Mul, Sub};
+use std::ops::{Add, Div, Index, Mul, Sub};
 
 use crate::{matrix::matrix::Matrix, vector::vector4::Vector4};
 
@@ -126,6 +126,43 @@ impl Mul<f32> for Matrix4 {
     }
 }
 
+impl Mul<Matrix4> for f32 {
+    type Output = Matrix4;
+
+    fn mul(self, mat: Matrix4) -> Self::Output {
+        let x = self * mat.x;
+        let y = self * mat.y;
+        let z = self * mat.z;
+        let w = self * mat.w;
+        Matrix4::from_cols(x, y, z, w)
+    }
+}
+
+// Scalar-Matrix multiplication
+impl Div<f32> for Matrix4 {
+    type Output = Matrix4;
+
+    fn div(self, scalar: f32) -> Self::Output {
+        let x = self.x / scalar;
+        let y = self.y / scalar;
+        let z = self.z / scalar;
+        let w = self.w / scalar;
+        Matrix4::from_cols(x, y, z, w)
+    }
+}
+
+impl Div<Matrix4> for f32 {
+    type Output = Matrix4;
+
+    fn div(self, mat: Matrix4) -> Self::Output {
+        let x = self / mat.x;
+        let y = self / mat.y;
+        let z = self / mat.z;
+        let w = self / mat.w;
+        Matrix4::from_cols(x, y, z, w)
+    }
+}
+
 // Scalar - Matrix Addition
 impl Add<f32> for Matrix4 {
     type Output = Matrix4;
@@ -135,6 +172,18 @@ impl Add<f32> for Matrix4 {
         let y = scalar + self.y;
         let z = scalar + self.z;
         let w = scalar + self.w;
+        Matrix4::from_cols(x, y, z, w)
+    }
+}
+
+impl Add<Matrix4> for f32 {
+    type Output = Matrix4;
+
+    fn add(self, mat: Matrix4) -> Self::Output {
+        let x = mat.x + self;
+        let y = mat.y + self;
+        let z = mat.z + self;
+        let w = mat.w + self;
         Matrix4::from_cols(x, y, z, w)
     }
 }

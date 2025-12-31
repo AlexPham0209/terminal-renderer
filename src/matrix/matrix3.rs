@@ -1,4 +1,4 @@
-use std::ops::{Add, Index, Mul, Sub};
+use std::ops::{Add, Div, Index, Mul, Sub};
 
 use crate::{matrix::matrix::Matrix, vector::vector3::Vector3};
 
@@ -112,7 +112,41 @@ impl Mul<f32> for Matrix3 {
     }
 }
 
-// Scalar - Matrix Addition
+impl Mul<Matrix3> for f32 {
+    type Output = Matrix3;
+
+    fn mul(self, mat: Matrix3) -> Self::Output {
+        let x = self * mat.x;
+        let y = self * mat.y;
+        let z = self * mat.z;
+        Matrix3::from_cols(x, y, z)
+    }
+}
+
+// Scalar-Matrix multiplication
+impl Div<f32> for Matrix3 {
+    type Output = Matrix3;
+
+    fn div(self, scalar: f32) -> Self::Output {
+        let x = self.x / scalar;
+        let y = self.y / scalar;
+        let z = self.z / scalar;
+        Matrix3::from_cols(x, y, z)
+    }
+}
+
+impl Div<Matrix3> for f32 {
+    type Output = Matrix3;
+
+    fn div(self, mat: Matrix3) -> Self::Output {
+        let x = self / mat.x;
+        let y = self / mat.y;
+        let z = self / mat.z;
+        Matrix3::from_cols(x, y, z)
+    }
+}
+
+// Scalar-Matrix Addition
 impl Add<f32> for Matrix3 {
     type Output = Matrix3;
 
@@ -120,6 +154,17 @@ impl Add<f32> for Matrix3 {
         let x = scalar + self.x;
         let y = scalar + self.y;
         let z = scalar + self.z;
+        Matrix3::from_cols(x, y, z)
+    }
+}
+
+impl Add<Matrix3> for f32 {
+    type Output = Matrix3;
+
+    fn add(self, mat: Matrix3) -> Self::Output {
+        let x = mat.x + self;
+        let y = mat.y + self;
+        let z = mat.z + self;
         Matrix3::from_cols(x, y, z)
     }
 }
@@ -168,5 +213,137 @@ impl Sub<Matrix3> for Matrix3 {
         let y = self.y - other.y;
         let z = self.z - other.z;
         Matrix3::from_cols(x, y, z)
+    }
+}
+
+
+mod tests {
+    use crate::matrix::matrix2::Matrix2;
+
+    use super::*;
+
+    #[test]
+    fn indexing_test() {
+        let x = Vector3::new(10, 5, 2);
+        let y = Vector3::new(7, 2, 1);
+        let z = Vector3::new(12, 9, 3);
+        let mat = Matrix3::from_cols(x, y, z);
+
+        // First index (column), second index (Row)
+        assert_eq!(mat[0][0], 10.0);
+        assert_eq!(mat[0][1], 5.0);
+        assert_eq!(mat[0][2], 2.0);
+        assert_eq!(mat[1][0], 7.0);
+        assert_eq!(mat[1][1], 2.0);
+        assert_eq!(mat[1][2], 1.0);
+        assert_eq!(mat[2][0], 12.0);
+        assert_eq!(mat[2][1], 9.0);
+        assert_eq!(mat[2][2], 3.0);
+    }
+
+    #[test]
+    fn transpose_test() {
+        let a = Matrix3::from_rows(
+            Vector3::new(10, 2, 3),
+            Vector3::new(5, 12, 11),
+            Vector3::new(9, 1, 4),
+        );
+        let t = Matrix3::from_rows(
+            Vector3::new(10, 5, 9),
+            Vector3::new(2, 12, 1),
+            Vector3::new(39, 11, 4),
+        );
+        assert_eq!(a.transpose(), t)
+    }
+
+    #[test]
+    fn matrix_vector_multiplication_test() {
+        let a = Matrix3::from_rows(
+            Vector3::new(10, 2, 3),
+            Vector3::new(5, 12, 11),
+            Vector3::new(9, 1, 4),
+        );
+        let b = Vector3::new(2, 3, 4);
+        let res = Vector3::new(38, 90, 37);
+        assert_eq!(a * b, res);
+    }
+
+    #[test]
+    fn matrix_multiplication_test() {
+        let a = Matrix3::from_rows(
+            Vector3::new(10, 2, 3),
+            Vector3::new(5, 12, 11),
+            Vector3::new(9, 1, 4),
+        );
+        let b = Matrix3::from_rows(
+            Vector3::new(31, 132, 12),
+            Vector3::new(1, 99, 119),
+            Vector3::new(23, 34, 71),
+        );
+        let res = Matrix3::from_rows(
+            Vector3::new(381, 1620, 571),
+            Vector3::new(420, 2222, 2269),
+            Vector3::new(372, 1423, 511),
+        );
+        assert_eq!(a * b, res);
+    }
+
+    #[test]
+    fn matrix_scalar_multiplication_test() {
+        let a = Matrix3::from_rows(
+            Vector3::new(10, 2, 3),
+            Vector3::new(5, 12, 11),
+            Vector3::new(9, 1, 4),
+        );
+        let res = Matrix3::from_rows(
+            Vector3::new(20, 4, 6),
+            Vector3::new(10, 24, 22),
+            Vector3::new(18, 2, 8),
+        );
+        assert_eq!(a * 2., res);
+        assert_eq!(2. * a, res);
+    }
+
+    #[test]
+    fn matrix_scalar_division_test() {
+        let a = Matrix2::new(2.0, 4.0, 6.0, 4.0);
+        let b = Matrix2::new(1.0, 2.0, 3.0, 2.0);
+        let c = Matrix2::new(1.0, 0.5, 0.33333334, 0.5);
+        assert_eq!(a / 2., b);
+        assert_eq!(2. / a, c);
+    }
+
+    #[test]
+    fn matrix_scalar_addition_test() {
+        let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
+        let res = Matrix2::new(3.0, 4.0, 5.0, 4.0);
+        assert_eq!(a + 2., res);
+        assert_eq!(2. + a, res);
+    }
+
+    #[test]
+    fn matrix_scalar_subtraction_test() {
+        let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
+        let res: Matrix2 = Matrix2::new(-1.0, 0.0, 1.0, 0.0);
+        assert_eq!(a - 2., res);
+        assert_eq!(2. - a, -res);
+    }
+
+    #[test]
+    fn matrix_addition_test() {
+        let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
+        let b =  Matrix2::new(1.5, 12.0, 5.0, -2.0);
+        let res: Matrix2 = Matrix2::new(2.5, 14.0, 8.0, 0.0);
+        assert_eq!(a + b, res);
+        assert_eq!(b + a, res);
+    }
+
+    #[test]
+    fn matrix_subtraction_test() {
+        let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
+        let b =  Matrix2::new(1.5, 12.0, 5.0, -2.0);
+        let res: Matrix2 = Matrix2::new(-0.5, -10.0, -2.0, 4.0);
+        assert_eq!(a - b, res);
+        assert_eq!(b - a, -res);
     }
 }

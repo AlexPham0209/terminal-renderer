@@ -1,4 +1,4 @@
-use std::ops::{self, Add, Index, Mul, Neg, Sub};
+use std::ops::{self, Add, AddAssign, Div, Index, Mul, MulAssign, Neg, Sub};
 
 use num::{Num, ToPrimitive, pow};
 
@@ -33,10 +33,10 @@ impl Vector for Vector2 {
 
     fn normalize(&self) -> Vector2 {
         let length = self.length();
-        *self * (1. / length)
+        *self / length
     }
 
-    fn dot(&self, other: &Vector2) -> f32 {
+    fn dot(&self, other: Vector2) -> f32 {
         self.x * other.x + self.y * other.y
     }
 }
@@ -109,6 +109,21 @@ impl Mul<Vector2> for f32 {
     type Output = Vector2;
     fn mul(self, vec: Vector2) -> Vector2 {
         Vector2::new(self * vec.x, self * vec.y)
+    }
+}
+
+// Scalar-Vector division
+impl Div<f32> for Vector2 {
+    type Output = Vector2;
+    fn div(self, scalar: f32) -> Vector2 {
+        Vector2::new(self.x / scalar, self.y / scalar)
+    }
+}
+
+impl Div<Vector2> for f32 {
+    type Output = Vector2;
+    fn div(self, vec: Vector2) -> Vector2 {
+        Vector2::new(self / vec.x, self / vec.y)
     }
 }
 
@@ -196,7 +211,7 @@ mod tests {
     fn dot_product_test() {
         let a: Vector2 = Vector2::new(10., 2.);
         let b: Vector2 = Vector2::new(4., 2.);
-        assert_eq!(a.dot(&b), 44.);
+        assert_eq!(a.dot(b), 44.);
         println!("{:?}", b);
     }
 

@@ -1,4 +1,4 @@
-use std::ops::{self, Add, Index, Mul, Neg, Sub};
+use std::ops::{self, Add, Div, Index, Mul, Neg, Sub};
 
 use num::{ToPrimitive, pow};
 
@@ -49,7 +49,7 @@ impl Vector for Vector4 {
         *self * (1. / length)
     }
 
-    fn dot(&self, other: &Self::VectorType) -> f32 {
+    fn dot(&self, other: Self::VectorType) -> f32 {
         self.x * other.x + self.y * other.y + self.z * other.z + self.w * other.w
     }
 }
@@ -118,14 +118,6 @@ impl Sub<Vector4> for f32 {
     }
 }
 
-impl Neg for Vector4 {
-    type Output = Vector4;
-
-    fn neg(self) -> Vector4 {
-        Vector4::new(-self.x, -self.y, -self.z, -self.w)
-    }
-}
-
 // Hadamard product
 impl Mul<Vector4> for Vector4 {
     type Output = Vector4;
@@ -156,6 +148,29 @@ impl Mul<Vector4> for f32 {
     type Output = Vector4;
     fn mul(self, vec: Vector4) -> Vector4 {
         Vector4::new(self * vec.x, self * vec.y, self * vec.z, self * vec.w)
+    }
+}
+
+// Scalar-vector division
+impl Div<f32> for Vector4 {
+    type Output = Vector4;
+    fn div(self, scalar: f32) -> Vector4 {
+        Vector4::new(self.x / scalar, self.y / scalar, self.z / scalar, self.w / scalar)
+    }
+}
+
+impl Div<Vector4> for f32 {
+    type Output = Vector4;
+    fn div(self, vec: Vector4) -> Vector4 {
+        Vector4::new(self / vec.x, self / vec.y, self / vec.z, self / vec.w)
+    }
+}
+
+impl Neg for Vector4 {
+    type Output = Vector4;
+
+    fn neg(self) -> Vector4 {
+        Vector4::new(-self.x, -self.y, -self.z, -self.w)
     }
 }
 

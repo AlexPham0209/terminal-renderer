@@ -1,4 +1,4 @@
-use std::ops::{Add, Index, Mul, Sub};
+use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 
 use crate::{Vector2, matrix::matrix::Matrix, vector::vector3::Vector3};
 
@@ -94,6 +94,37 @@ impl Mul<f32> for Matrix2 {
     }
 }
 
+impl Mul<Matrix2> for f32 {
+    type Output = Matrix2;
+
+    fn mul(self, mat: Matrix2) -> Self::Output {
+        let x = self * mat.x;
+        let y = self * mat.y;
+        Matrix2::from_cols(x, y)
+    }
+}
+
+// Scalar-Matrix multiplication
+impl Div<f32> for Matrix2 {
+    type Output = Matrix2;
+
+    fn div(self, scalar: f32) -> Self::Output {
+        let x = self.x / scalar;
+        let y = self.y / scalar;
+        Matrix2::from_cols(x, y)
+    }
+}
+
+impl Div<Matrix2> for f32 {
+    type Output = Matrix2;
+
+    fn div(self, mat: Matrix2) -> Self::Output {
+        let x = self / mat.x;
+        let y = self / mat.y;
+        Matrix2::from_cols(x, y)
+    }
+}
+
 // Scalar-Matrix Addition
 impl Add<f32> for Matrix2 {
     type Output = Matrix2;
@@ -101,6 +132,16 @@ impl Add<f32> for Matrix2 {
     fn add(self, scalar: f32) -> Self::Output {
         let x = scalar + self.x;
         let y = scalar + self.y;
+        Matrix2::from_cols(x, y)
+    }
+}
+
+impl Add<Matrix2> for f32 {
+    type Output = Matrix2;
+
+    fn add(self, mat: Matrix2) -> Self::Output {
+        let x = mat.x + self;
+        let y = mat.y + self;
         Matrix2::from_cols(x, y)
     }
 }
@@ -148,6 +189,16 @@ impl Sub<Matrix2> for Matrix2 {
     }
 }
 
+// Matrix negation
+impl Neg for Matrix2 {
+    type Output = Matrix2;
+
+    fn neg(self) -> Matrix2 {
+        Matrix2::from_cols(-self.x, -self.y)
+    }
+}
+
+
 mod tests {
     use super::*;
 
@@ -185,5 +236,56 @@ mod tests {
         let b = Matrix2::new(3.0, 2.0, 1.0, 5.0);
         let res = Matrix2::new(5.0, 12.0, 11.0, 16.0);
         assert_eq!(a * b, res);
+    }
+
+    #[test]
+    fn matrix_scalar_multiplication_test() {
+        let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
+        let res = Matrix2::new(2.0, 4.0, 6.0, 4.0);
+        assert_eq!(a * 2., res);
+        assert_eq!(2. * a, res);
+    }
+
+    #[test]
+    fn matrix_scalar_division_test() {
+        let a = Matrix2::new(2.0, 4.0, 6.0, 4.0);
+        let b = Matrix2::new(1.0, 2.0, 3.0, 2.0);
+        let c = Matrix2::new(1.0, 0.5, 0.33333334, 0.5);
+        assert_eq!(a / 2., b);
+        assert_eq!(2. / a, c);
+    }
+
+    #[test]
+    fn matrix_scalar_addition_test() {
+        let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
+        let res = Matrix2::new(3.0, 4.0, 5.0, 4.0);
+        assert_eq!(a + 2., res);
+        assert_eq!(2. + a, res);
+    }
+
+    #[test]
+    fn matrix_scalar_subtraction_test() {
+        let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
+        let res: Matrix2 = Matrix2::new(-1.0, 0.0, 1.0, 0.0);
+        assert_eq!(a - 2., res);
+        assert_eq!(2. - a, -res);
+    }
+
+    #[test]
+    fn matrix_addition_test() {
+        let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
+        let b =  Matrix2::new(1.5, 12.0, 5.0, -2.0);
+        let res: Matrix2 = Matrix2::new(2.5, 14.0, 8.0, 0.0);
+        assert_eq!(a + b, res);
+        assert_eq!(b + a, res);
+    }
+
+    #[test]
+    fn matrix_subtraction_test() {
+        let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
+        let b =  Matrix2::new(1.5, 12.0, 5.0, -2.0);
+        let res: Matrix2 = Matrix2::new(-0.5, -10.0, -2.0, 4.0);
+        assert_eq!(a - b, res);
+        assert_eq!(b - a, -res);
     }
 }

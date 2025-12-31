@@ -5,5 +5,5 @@ pub trait Vector {
 
     fn length(&self) -> f32;
     fn normalize(&self) -> Self::VectorType;
-    fn dot(&self, other: &Self::VectorType) -> f32;
+    fn dot(&self, other: Self::VectorType) -> f32;
 }

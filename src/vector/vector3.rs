@@ -1,4 +1,4 @@
-use std::ops::{self, Add, Index, Mul, Neg, Sub};
+use std::ops::{self, Add, Div, Index, Mul, Neg, Sub};
 
 use num::{ToPrimitive, pow};
 
@@ -25,7 +25,7 @@ impl Vector3 {
         }
     }
 
-    fn cross(&self, other: &Vector3) -> Vector3 {
+    fn cross(&self, other: Vector3) -> Vector3 {
         Vector3::new(
             self.y * other.z - self.z * other.y,
             self.z * other.x - self.x * other.z,
@@ -43,10 +43,10 @@ impl Vector for Vector3 {
 
     fn normalize(&self) -> Self::VectorType {
         let length = self.length();
-        *self * (1. / length)
+        *self / length
     }
 
-    fn dot(&self, other: &Self::VectorType) -> f32 {
+    fn dot(&self, other: Self::VectorType) -> f32 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 }
@@ -120,6 +120,21 @@ impl Mul<Vector3> for f32 {
     type Output = Vector3;
     fn mul(self, vec: Vector3) -> Vector3 {
         Vector3::new(self * vec.x, self * vec.y, self * vec.z)
+    }
+}
+
+// Scalar-Vector division
+impl Div<f32> for Vector3 {
+    type Output = Vector3;
+    fn div(self, scalar: f32) -> Vector3 {
+        Vector3::new(self.x / scalar, self.y / scalar, self.z / scalar)
+    }
+}
+
+impl Div<Vector3> for f32 {
+    type Output = Vector3;
+    fn div(self, vec: Vector3) -> Vector3 {
+        Vector3::new(self / vec.x, self / vec.y, self / vec.z)
     }
 }
 
@@ -217,7 +232,7 @@ mod tests {
         let b = Vector3::new(3, 4, 5);
         let res = 26.0;
 
-        assert_eq!(a.dot(&b), res);
+        assert_eq!(a.dot(b), res);
     }
 
     #[test]
@@ -226,6 +241,6 @@ mod tests {
         let b = Vector3::new(12, 4, 5);
         let res = Vector3::new(-2, 31, -20);
 
-        assert_eq!(a.cross(&b), res);
+        assert_eq!(a.cross(b), res);
     }
 }
