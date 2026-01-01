@@ -1,6 +1,6 @@
 use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 
-use crate::{matrix::matrix::Matrix, vector::vector3::Vector3};
+use crate::{matrix::{matrix::Matrix, rotation::{Angle, Rotation}, scale::Scale}, vector::vector3::Vector3};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix3 {
@@ -64,22 +64,82 @@ impl Matrix for Matrix3 {
     fn transpose(&self) -> Matrix3 {
         Matrix3::from_rows(self.x, self.y, self.z)
     }
+    
+    fn identity() -> Self {
+        let x = Vector3::new(1, 0, 0);
+        let y = Vector3::new(0, 1, 0);
+        let z = Vector3::new(0, 0, 1);
+        Matrix3::from_cols(x, y, z)
+    }
 }
+impl Scale for Matrix3 {
+    type Output = Matrix3;
 
-impl Index<usize> for Matrix3 {
-    type Output = Vector3;
-
-    fn index(&self, index: usize) -> &Vector3 {
-        match index {
-            0 => &self.x,
-            1 => &self.y,
-            2 => &self.z,
-            _ => panic!("Index out of range"),
-        }
+    fn scalar_matrix(scalar: f32) -> Matrix3 {
+        scalar * Matrix3::identity()
     }
 }
 
-// Matrix - Vector Multiplication
+impl Rotation for Matrix3 {
+    type Output = Matrix3;
+
+    fn x_rotation_matrix(angle: Angle) -> Matrix3 {
+        let angle: f32 = match angle {
+            Angle::Degrees(degrees) => degrees.to_radians(),
+            Angle::Radians(radians) => radians
+        };
+
+        let cos: f32 = f32::cos(angle);
+        let sin: f32 = f32::sin(angle);
+
+        Matrix3::new(
+            1.0, 0.0, 0.0, 
+            0.0, cos, -sin, 
+            0.0, sin, cos
+        )
+    }
+
+
+    fn y_rotation_matrix(angle: Angle) -> Matrix3 {
+        let angle: f32 = match angle {
+            Angle::Degrees(degrees) => degrees.to_radians(),
+            Angle::Radians(radians) => radians
+        };
+
+        let cos: f32 = f32::cos(angle);
+        let sin: f32 = f32::sin(angle);
+
+        Matrix3::new(
+            cos, 0.0, sin,
+            0.0, 1.0, 0.0,
+            -sin, 0.0, cos
+        )
+    }
+
+    fn z_rotation_matrix(angle: Angle) -> Matrix3 {
+        let angle: f32 = match angle {
+            Angle::Degrees(degrees) => degrees.to_radians(),
+            Angle::Radians(radians) => radians
+        };
+
+        let cos: f32 = f32::cos(angle);
+        let sin: f32 = f32::sin(angle);
+
+        Matrix3::new(
+            cos, -sin, 0.0,
+            sin, cos, 0.0,
+            0.0, 0.0, 1.0
+        )
+    }
+
+    fn rotation_matrix(yaw: Angle, pitch: Angle, roll: Angle) -> Matrix3 {
+        Matrix3::z_rotation_matrix(roll) * 
+        Matrix3::y_rotation_matrix(pitch) * 
+        Matrix3::x_rotation_matrix(yaw) 
+    }
+}
+
+// Matrix-Vector Multiplication
 impl Mul<Vector3> for Matrix3 {
     type Output = Vector3;
 
@@ -222,6 +282,19 @@ impl Neg for Matrix3 {
 
     fn neg(self) -> Matrix3 {
         Matrix3::from_cols(-self.x, -self.y, -self.z)
+    }
+}
+
+impl Index<usize> for Matrix3 {
+    type Output = Vector3;
+
+    fn index(&self, index: usize) -> &Vector3 {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            _ => panic!("Index out of range"),
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 
-use crate::{Vector2, matrix::matrix::Matrix, vector::vector3::Vector3};
+use crate::{Vector2, matrix::{matrix::Matrix, scale::Scale}, vector::vector3::Vector3};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix2 {
@@ -49,17 +49,21 @@ impl Matrix for Matrix2 {
     fn transpose(&self) -> Matrix2 {
         Matrix2::from_rows(self.x, self.y)
     }
+    
+    fn identity() -> Self {
+        let x = Vector2::new(1, 0);
+        let y = Vector2::new(0, 1);
+        Matrix2::from_cols(x, y)
+    }
+
 }
 
-impl Index<usize> for Matrix2 {
-    type Output = Vector2;
 
-    fn index(&self, index: usize) -> &Vector2 {
-        match index {
-            0 => &self.x,
-            1 => &self.y,
-            _ => panic!("Index out of range"),
-        }
+// Scalar matrix
+impl Scale for Matrix2 {
+    type Output = Matrix2;
+    fn scalar_matrix(scalar: f32) -> Matrix2 {
+        scalar * Matrix2::identity()
     }
 }
 
@@ -195,6 +199,18 @@ impl Neg for Matrix2 {
 
     fn neg(self) -> Matrix2 {
         Matrix2::from_cols(-self.x, -self.y)
+    }
+}
+
+impl Index<usize> for Matrix2 {
+    type Output = Vector2;
+
+    fn index(&self, index: usize) -> &Vector2 {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            _ => panic!("Index out of range"),
+        }
     }
 }
 

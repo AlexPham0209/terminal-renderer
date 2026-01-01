@@ -1,6 +1,6 @@
 use std::ops::{Add, Div, Index, Mul, Sub};
 
-use crate::{matrix::{matrix::Matrix, matrix3::Matrix3}, vector::{vector3::Vector3, vector4::Vector4}};
+use crate::{matrix::{matrix::Matrix, matrix3::Matrix3, rotation::{Angle, Rotation}, scale::Scale}, vector::{vector3::Vector3, vector4::Vector4}};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix4 {
@@ -83,19 +83,52 @@ impl Matrix for Matrix4 {
     fn transpose(&self) -> Matrix4 {
         Matrix4::from_rows(self.x, self.y, self.z, self.w)
     }
+    
+    fn identity() -> Self {
+        let x = Vector4::new(1, 0, 0, 0);
+        let y = Vector4::new(0, 1, 0, 0);
+        let z = Vector4::new(0, 0, 1, 0);
+        let w = Vector4::new(0, 0, 0, 1);
+        Matrix4::from_cols(x, y, z, w)
+    }
 }
 
-impl Index<usize> for Matrix4 {
-    type Output = Vector4;
+impl Matrix4 {
+    fn translation_matrix(t: Vector3) -> Matrix4 {
+        let x = Vector4::new(1, 0, 0, 0);
+        let y = Vector4::new(0, 1, 0, 0);
+        let z = Vector4::new(0, 0, 1, 0);
+        let w = Vector4::to_homogeneous(t);
+        Matrix4::from_cols(x, y, z, w)
+    }
+}
 
-    fn index(&self, index: usize) -> &Vector4 {
-        match index {
-            0 => &self.x,
-            1 => &self.y,
-            2 => &self.z,
-            3 => &self.w,
-            _ => panic!("Index out of range"),
-        }
+impl Scale for Matrix4 {
+    type Output = Matrix4;
+
+    fn scalar_matrix(scalar: f32) -> Matrix4 {
+        scalar * Matrix4::identity()
+    }
+}
+
+// For rotation matrices
+impl Rotation for Matrix4 {
+    type Output = Matrix4;
+    fn x_rotation_matrix(angle: Angle) -> Matrix4 {
+        Matrix4::from_matrix3(Matrix3::x_rotation_matrix(angle))
+    }
+
+
+    fn y_rotation_matrix(angle: Angle) -> Matrix4 {
+        Matrix4::from_matrix3(Matrix3::y_rotation_matrix(angle))
+    }
+
+    fn z_rotation_matrix(angle: Angle) -> Matrix4 {
+        Matrix4::from_matrix3(Matrix3::z_rotation_matrix(angle))
+    }
+
+    fn rotation_matrix(yaw: Angle, pitch: Angle, roll: Angle) -> Matrix4 {
+        Matrix4::from_matrix3(Matrix3::rotation_matrix(yaw, pitch, roll))
     }
 }
 
@@ -247,10 +280,22 @@ impl Sub<Matrix4> for Matrix4 {
     }
 }
 
+impl Index<usize> for Matrix4 {
+    type Output = Vector4;
+
+    fn index(&self, index: usize) -> &Vector4 {
+        match index {
+            0 => &self.x,
+            1 => &self.y,
+            2 => &self.z,
+            3 => &self.w,
+            _ => panic!("Index out of range"),
+        }
+    }
+}
+
 
 mod tests {
-    use crate::matrix::matrix2::Matrix2;
-
     use super::*;
 
     #[test]
@@ -306,6 +351,18 @@ mod tests {
         );
 
         assert_eq!(Matrix4::from_matrix3(a), res)
+    }
+
+    #[test]
+    fn translation_matrix_test() {
+        let t: Vector3 = Vector3::new(1, 3, 5);
+        let res: Matrix4 = Matrix4::new(
+            1.0, 0.0, 0.0, 1.0,
+            0.0, 1.0, 0.0, 3.0,
+            0.0, 0.0, 1.0, 5.0,
+            0.0, 0.0, 0.0, 1.0, 
+        );
+        assert_eq!(Matrix4::translation_matrix(t), res)
     }
     
     #[test]

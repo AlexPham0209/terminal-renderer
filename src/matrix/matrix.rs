@@ -3,4 +3,5 @@ pub trait Matrix {
     fn row(&self, index: usize) -> Self::Vector;
     fn col(&self, index: usize) -> Self::Vector;
     fn transpose(&self) -> Self;
+    fn identity() -> Self;
 }

@@ -40,7 +40,9 @@ impl Vector4 {
         Vector4::new(x, y, z, w)
     }
 
-
+    pub fn to_vector3(&self) -> Vector3 {
+        Vector3::new(self.x, self.y, self.z)
+    }
 
 }
 
