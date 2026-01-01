@@ -3,7 +3,7 @@ mod matrix;
 mod vector;
 
 pub use crate::vector::vector2::Vector2;
-use crate::{matrix::{matrix4::Matrix4, rotation::{Angle, Rotation}, scale::Scale}, vector::vector3::Vector3};
+use crate::{matrix::{matrix4::Matrix4, rotation::{Angle, Rotation}, scale::Scale}, vector::{vector::Vector, vector3::Vector3}};
 pub use crate::vector::vector4::Vector4;
 pub use grid::Grid;
 
@@ -19,7 +19,20 @@ struct Triangle {
 
 // Make sure that points are in counter-clockwise order
 fn edge_function(a: &Vector3, b: &Vector3, c: &Vector3) -> f32 {
-    ((c.y - a.y) * (b.x - a.x)) - ((c.x - a.x) * (b.y - a.y))
+    // Calculates vector representing the line from point A to C
+    let ac = *c - *a;
+
+    // Calculate the vector representing the triangle edge (A to B)
+    let ab = *a - *b;
+    
+    // Calculating the normal/perpendicular vector of the AB side.
+    let ab_perp = Vector3::new(ab.y, -ab.x, ab.z);
+
+    // The dot product calculates how similar the directions of two vectors are
+    // If it is negative, then they are facing opposite directions
+    // If it is positive, then they are facing similar directions
+    // If the dot product between the normal and the AC vector are positive, then the vector is on the right side of the triangle
+    ac.dot(ab_perp)
 }
 
 fn check_inside(tri: &Triangle, p: &Vector3) -> bool {
@@ -28,7 +41,7 @@ fn check_inside(tri: &Triangle, p: &Vector3) -> bool {
     let bcp = edge_function(b, c, p) >= 0.;
     let cap = edge_function(c, a, p) >= 0.;
 
-    abp && bcp && cap || (!abp && !bcp && !cap)
+    abp == bcp && bcp == cap
 }
 
 fn to_screen_coordinates(vec: Vector3) -> Vector3 {
@@ -43,9 +56,9 @@ fn main() {
     let mut grid = Grid::new(' ', WIDTH, HEIGHT);
 
     let tri: Triangle = Triangle {
-        a: Vector3::new(-0.5, -0.5, 0.0),
-        b: Vector3::new(0.5, -0.5, 0.0),
-        c: Vector3::new(0.0, 0.5, 0.0),
+        a: Vector3::new(-0.215, -0.5, 0.0),
+        b: Vector3::new(0.8, -0.4, 0.0),
+        c: Vector3::new(0.5, 0.3, 0.0),
     };
 
     let mut pitch = 0.0;
@@ -74,7 +87,7 @@ fn main() {
                 );
 
                 // Translation matrix
-                let position = Vector3::new(0.0, 0.0, 0.5);
+                let position = Vector3::new(0.5, 0.0, 0.75);
                 let translation = Matrix4::translation(position);
 
                 // Perspective matrix
