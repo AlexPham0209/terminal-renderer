@@ -51,20 +51,16 @@ impl Matrix4 {
         Self { x, y, z, w }
     }
 
-    pub fn from_matrix3(mat: Matrix3) -> Matrix4 {
-        let x = Vector4::from_vector3(mat.x, 0.0);
-        let y = Vector4::from_vector3(mat.y, 0.0);
-        let z = Vector4::from_vector3(mat.z, 0.0);
+    pub fn to_homogenous(mat: Matrix3) -> Matrix4 {
+        let x = Vector4::to_vector4(mat.x, 0.0);
+        let y = Vector4::to_vector4(mat.y, 0.0);
+        let z = Vector4::to_vector4(mat.z, 0.0);
         let w = Vector4::new(0.0, 0.0, 0.0, 1.0);
         Matrix4::from_cols(x, y, z, w)
     }
 
-    pub fn to_matrix3(&self) -> Matrix3 {
-        Matrix3::from_cols(
-            self.x.to_vector3(),
-            self.y.to_vector3(),
-            self.z.to_vector3()
-        )
+    pub fn cartesian(&self) -> Matrix3 {
+        Matrix3::to_cartesian(*self)
     }
 }
 
@@ -104,11 +100,26 @@ impl Matrix for Matrix4 {
 }
 
 impl Matrix4 {
-    fn translation_matrix(t: Vector3) -> Matrix4 {
+    fn translation(t: Vector3) -> Matrix4 {
         let x = Vector4::new(1, 0, 0, 0);
         let y = Vector4::new(0, 1, 0, 0);
         let z = Vector4::new(0, 0, 1, 0);
         let w = Vector4::to_homogeneous(t);
+        Matrix4::from_cols(x, y, z, w)
+    }
+
+    pub fn perspective(fov: Angle, z_far: f32, z_near: f32, aspect: f32) -> Matrix4 {
+        let fov: f32 = match fov {
+            Angle::Degrees(degrees) => degrees.to_radians(),
+            Angle::Radians(radians) => radians
+        };
+
+        let tan = f32::tan(fov / 2.0);
+
+        let x = Vector4::new(1.0 / (aspect * tan), 0, 0, 0);
+        let y = Vector4::new(0, 1.0 / tan, 0, 0);
+        let z = Vector4::new(0, 0, -((z_far + z_near)/(z_far - z_near)), -1);
+        let w = Vector4::new(0, 0, 0, -((2.0 * z_far * z_near)/(z_far - z_near)));
         Matrix4::from_cols(x, y, z, w)
     }
 }
@@ -116,7 +127,7 @@ impl Matrix4 {
 impl Scale for Matrix4 {
     type Output = Matrix4;
 
-    fn scalar_matrix(scalar: f32) -> Matrix4 {
+    fn scalar(scalar: f32) -> Matrix4 {
         scalar * Matrix4::identity()
     }
 }
@@ -124,21 +135,21 @@ impl Scale for Matrix4 {
 // For rotation matrices
 impl Rotation for Matrix4 {
     type Output = Matrix4;
-    fn x_rotation_matrix(angle: Angle) -> Matrix4 {
-        Matrix4::from_matrix3(Matrix3::x_rotation_matrix(angle))
+    fn x_rotation(angle: Angle) -> Matrix4 {
+        Matrix4::to_homogenous(Matrix3::x_rotation(angle))
     }
 
 
-    fn y_rotation_matrix(angle: Angle) -> Matrix4 {
-        Matrix4::from_matrix3(Matrix3::y_rotation_matrix(angle))
+    fn y_rotation(angle: Angle) -> Matrix4 {
+        Matrix4::to_homogenous(Matrix3::y_rotation(angle))
     }
 
-    fn z_rotation_matrix(angle: Angle) -> Matrix4 {
-        Matrix4::from_matrix3(Matrix3::z_rotation_matrix(angle))
+    fn z_rotation(angle: Angle) -> Matrix4 {
+        Matrix4::to_homogenous(Matrix3::z_rotation(angle))
     }
 
-    fn rotation_matrix(yaw: Angle, pitch: Angle, roll: Angle) -> Matrix4 {
-        Matrix4::from_matrix3(Matrix3::rotation_matrix(yaw, pitch, roll))
+    fn rotation(yaw: Angle, pitch: Angle, roll: Angle) -> Matrix4 {
+        Matrix4::to_homogenous(Matrix3::rotation(yaw, pitch, roll))
     }
 }
 
@@ -389,7 +400,7 @@ mod tests {
             0.0, 0.0, 0.0, 1.0
         );
 
-        assert_eq!(Matrix4::from_matrix3(a), res)
+        assert_eq!(Matrix4::to_homogenous(a), res)
     }
 
     #[test]
@@ -401,7 +412,7 @@ mod tests {
             0.0, 0.0, 1.0, 5.0,
             0.0, 0.0, 0.0, 1.0, 
         );
-        assert_abs_diff_eq!(Matrix4::translation_matrix(t), res)
+        assert_abs_diff_eq!(Matrix4::translation(t), res)
     }
     
     #[test]

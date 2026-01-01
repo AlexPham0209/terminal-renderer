@@ -34,6 +34,10 @@ impl Vector3 {
         )
     }
 
+    pub fn to_vector3(vec: Vector4) -> Vector3 {
+        Vector3::new(vec.x, vec.y, vec.z)
+    }
+
     pub fn to_cartesian(vec: Vector4) -> Vector3 {
         Vector3::new(vec.x / vec.w, vec.y / vec.w, vec.z / vec.w)
     }

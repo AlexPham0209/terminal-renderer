@@ -8,8 +8,8 @@ pub enum Angle {
 pub trait Rotation {
     type Output;
 
-    fn x_rotation_matrix(angle: Angle) -> Self::Output;
-    fn y_rotation_matrix(angle: Angle) -> Self::Output;
-    fn z_rotation_matrix(angle: Angle) -> Self::Output;
-    fn rotation_matrix(yaw: Angle, pitch: Angle, roll: Angle) -> Self::Output;
+    fn x_rotation(angle: Angle) -> Self::Output;
+    fn y_rotation(angle: Angle) -> Self::Output;
+    fn z_rotation(angle: Angle) -> Self::Output;
+    fn rotation(yaw: Angle, pitch: Angle, roll: Angle) -> Self::Output;
 }

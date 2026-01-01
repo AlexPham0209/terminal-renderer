@@ -64,7 +64,7 @@ impl Matrix for Matrix2 {
 // Scalar matrix
 impl Scale for Matrix2 {
     type Output = Matrix2;
-    fn scalar_matrix(scalar: f32) -> Matrix2 {
+    fn scalar(scalar: f32) -> Matrix2 {
         scalar * Matrix2::identity()
     }
 }

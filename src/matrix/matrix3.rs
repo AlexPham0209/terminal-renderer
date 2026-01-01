@@ -2,7 +2,7 @@ use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 
 use approx::{AbsDiffEq, abs_diff_eq};
 
-use crate::{matrix::{matrix::Matrix, rotation::{Angle, Rotation}, scale::Scale}, vector::vector3::Vector3};
+use crate::{matrix::{matrix::Matrix, matrix4::Matrix4, rotation::{Angle, Rotation}, scale::Scale}, vector::vector3::Vector3};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix3 {
@@ -39,6 +39,18 @@ impl Matrix3 {
 
     pub fn from_cols(x: Vector3, y: Vector3, z: Vector3) -> Self {
         Self { x, y, z }
+    }
+
+    pub fn to_cartesian(mat: Matrix4) -> Matrix3 {
+        Matrix3::from_cols(
+            mat.x.xyz(),
+            mat.y.xyz(),
+            mat.z.xyz()
+        )
+    }
+
+    pub fn homogenous(&self) -> Matrix4 {
+        Matrix4::to_homogenous(*self)
     }
 }
 
@@ -77,7 +89,7 @@ impl Matrix for Matrix3 {
 impl Scale for Matrix3 {
     type Output = Matrix3;
 
-    fn scalar_matrix(scalar: f32) -> Matrix3 {
+    fn scalar(scalar: f32) -> Matrix3 {
         scalar * Matrix3::identity()
     }
 }
@@ -85,7 +97,7 @@ impl Scale for Matrix3 {
 impl Rotation for Matrix3 {
     type Output = Matrix3;
 
-    fn x_rotation_matrix(angle: Angle) -> Matrix3 {
+    fn x_rotation(angle: Angle) -> Matrix3 {
         let angle: f32 = match angle {
             Angle::Degrees(degrees) => degrees.to_radians(),
             Angle::Radians(radians) => radians
@@ -102,7 +114,7 @@ impl Rotation for Matrix3 {
     }
 
 
-    fn y_rotation_matrix(angle: Angle) -> Matrix3 {
+    fn y_rotation(angle: Angle) -> Matrix3 {
         let angle: f32 = match angle {
             Angle::Degrees(degrees) => degrees.to_radians(),
             Angle::Radians(radians) => radians
@@ -118,7 +130,7 @@ impl Rotation for Matrix3 {
         )
     }
 
-    fn z_rotation_matrix(angle: Angle) -> Matrix3 {
+    fn z_rotation(angle: Angle) -> Matrix3 {
         let angle: f32 = match angle {
             Angle::Degrees(degrees) => degrees.to_radians(),
             Angle::Radians(radians) => radians
@@ -134,10 +146,10 @@ impl Rotation for Matrix3 {
         )
     }
 
-    fn rotation_matrix(yaw: Angle, pitch: Angle, roll: Angle) -> Matrix3 {
-        Matrix3::z_rotation_matrix(roll) * 
-        Matrix3::y_rotation_matrix(pitch) * 
-        Matrix3::x_rotation_matrix(yaw) 
+    fn rotation(yaw: Angle, pitch: Angle, roll: Angle) -> Matrix3 {
+        Matrix3::z_rotation(roll) * 
+        Matrix3::y_rotation(pitch) * 
+        Matrix3::x_rotation(yaw) 
     }
 }
 
