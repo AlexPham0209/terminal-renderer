@@ -1,4 +1,4 @@
 pub trait Scale {
     type Output;
-    fn scalar(scalar: f32) -> Self::Output;
+    fn scale(scalar: f32) -> Self::Output;
 }

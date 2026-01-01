@@ -24,7 +24,13 @@ impl<T> Grid<T> {
         true
     }
 
-    pub fn clear(&mut self) {}
+    pub fn clear(&mut self, value: T) where T: Copy {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                self.set(value, x, y);
+            }
+        }
+    }
 }
 
 impl<T: Clone> Grid<T> {

@@ -1,4 +1,4 @@
-use std::ops::{self, Add, Div, Index, Mul, Neg, Sub};
+use std::ops::{self, Add, Div, Index, Mul, MulAssign, Neg, Sub};
 
 use approx::AbsDiffEq;
 use num::{ToPrimitive, pow};
@@ -45,7 +45,7 @@ impl Vector4 {
         Vector4::new(x, y, z, w)
     }
 
-    fn cartesian(&self) -> Vector3 {
+    pub fn cartesian(&self) -> Vector3 {
         Vector3::to_cartesian(*self)
     }
 }
@@ -161,6 +161,12 @@ impl Mul<Vector4> for f32 {
     type Output = Vector4;
     fn mul(self, vec: Vector4) -> Vector4 {
         Vector4::new(self * vec.x, self * vec.y, self * vec.z, self * vec.w)
+    }
+}
+
+impl MulAssign<f32> for Vector4 {
+    fn mul_assign(&mut self, scalar: f32) {
+        *self = scalar * (*self);
     }
 }
 

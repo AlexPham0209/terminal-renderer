@@ -1,4 +1,4 @@
-use std::ops::{self, Add, Div, Index, Mul, Neg, Sub};
+use std::ops::{self, Add, Div, Index, Mul, MulAssign, Neg, Sub};
 
 use approx::{AbsDiffEq, RelativeEq};
 use num::{ToPrimitive, pow};
@@ -42,7 +42,7 @@ impl Vector3 {
         Vector3::new(vec.x / vec.w, vec.y / vec.w, vec.z / vec.w)
     }
 
-    fn homogenous(&self) -> Vector4 {
+    pub fn homogenous(&self) -> Vector4 {
         Vector4::to_homogeneous(*self)
     }
 }
@@ -133,6 +133,12 @@ impl Mul<Vector3> for f32 {
     type Output = Vector3;
     fn mul(self, vec: Vector3) -> Vector3 {
         Vector3::new(self * vec.x, self * vec.y, self * vec.z)
+    }
+}
+
+impl MulAssign<f32> for Vector3 {
+    fn mul_assign(&mut self, scalar: f32) {
+        *self = scalar * (*self);
     }
 }
 

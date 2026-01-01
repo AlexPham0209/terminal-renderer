@@ -52,6 +52,7 @@ impl Matrix3 {
     pub fn homogenous(&self) -> Matrix4 {
         Matrix4::to_homogenous(*self)
     }
+    
 }
 
 impl Matrix for Matrix3 {
@@ -89,7 +90,7 @@ impl Matrix for Matrix3 {
 impl Scale for Matrix3 {
     type Output = Matrix3;
 
-    fn scalar(scalar: f32) -> Matrix3 {
+    fn scale(scalar: f32) -> Matrix3 {
         scalar * Matrix3::identity()
     }
 }

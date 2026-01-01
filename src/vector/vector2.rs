@@ -113,6 +113,12 @@ impl Mul<Vector2> for f32 {
     }
 }
 
+impl MulAssign<f32> for Vector2 {
+    fn mul_assign(&mut self, scalar: f32) {
+        *self = scalar * (*self);
+    }
+}
+
 // Scalar-Vector division
 impl Div<f32> for Vector2 {
     type Output = Vector2;

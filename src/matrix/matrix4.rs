@@ -100,7 +100,7 @@ impl Matrix for Matrix4 {
 }
 
 impl Matrix4 {
-    fn translation(t: Vector3) -> Matrix4 {
+    pub fn translation(t: Vector3) -> Matrix4 {
         let x = Vector4::new(1, 0, 0, 0);
         let y = Vector4::new(0, 1, 0, 0);
         let z = Vector4::new(0, 0, 1, 0);
@@ -115,11 +115,19 @@ impl Matrix4 {
         };
 
         let tan = f32::tan(fov / 2.0);
-
+        
         let x = Vector4::new(1.0 / (aspect * tan), 0, 0, 0);
         let y = Vector4::new(0, 1.0 / tan, 0, 0);
         let z = Vector4::new(0, 0, -((z_far + z_near)/(z_far - z_near)), -1);
         let w = Vector4::new(0, 0, 0, -((2.0 * z_far * z_near)/(z_far - z_near)));
+        Matrix4::from_cols(x, y, z, w)
+    }
+
+    pub fn orthographic(t: f32, b: f32, r: f32, l: f32, f: f32, n: f32) -> Matrix4 {
+        let x = Vector4::new(2.0 / (r - l), 0, 0, 0);
+        let y = Vector4::new(0, 2.0 / (t - b), 0, 0);
+        let z = Vector4::new(0, 0, -2.0 / (f - n),0);
+        let w = Vector4::new((l + r) / 2.0, (t + b) / 2.0, - (f + n) / 2.0, 1);
         Matrix4::from_cols(x, y, z, w)
     }
 }
@@ -127,8 +135,8 @@ impl Matrix4 {
 impl Scale for Matrix4 {
     type Output = Matrix4;
 
-    fn scalar(scalar: f32) -> Matrix4 {
-        scalar * Matrix4::identity()
+    fn scale(scalar: f32) -> Matrix4 {
+        (scalar * Matrix3::identity()).homogenous()
     }
 }
 
@@ -159,6 +167,16 @@ impl Mul<Vector4> for Matrix4 {
 
     fn mul(self, v: Vector4) -> Self::Output {
         v.x * self.x + v.y * self.y + v.z * self.z + v.w * self.w
+    }
+}
+
+impl Mul<Vector3> for Matrix4 {
+    type Output = Vector3;
+
+    fn mul(self, v: Vector3) -> Self::Output {
+        let v = v.homogenous();
+        let v = v.x * self.x + v.y * self.y + v.z * self.z + v.w * self.w;
+        v.cartesian()
     }
 }
 
