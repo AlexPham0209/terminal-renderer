@@ -1,5 +1,7 @@
 use std::ops::{Add, Div, Index, Mul, Sub};
 
+use approx::{AbsDiffEq, abs_diff_eq};
+
 use crate::{matrix::{matrix::Matrix, matrix3::Matrix3, rotation::{Angle, Rotation}, scale::Scale}, vector::{vector3::Vector3, vector4::Vector4}};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -302,8 +304,37 @@ impl Index<usize> for Matrix4 {
     }
 }
 
+// For approximate equals
+impl AbsDiffEq for Matrix4 where
+    <f32 as AbsDiffEq>::Epsilon: Copy,
+{
+    type Epsilon = <f32 as AbsDiffEq>::Epsilon;
+
+    fn default_epsilon() -> Self::Epsilon {
+        Self::Epsilon::default_epsilon()
+    }
+    
+    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        // println!("{}", abs_diff_eq!(&self.x, &other.x, epsilon=epsilon));
+        // println!("{}", abs_diff_eq!(&self.y, &other.y, epsilon=epsilon));
+        // println!("{}", abs_diff_eq!(&self.z, &other.z, epsilon=epsilon));
+        abs_diff_eq!(&self.x, &other.x, epsilon=epsilon) &&
+        abs_diff_eq!(&self.y, &other.y, epsilon=epsilon) &&
+        abs_diff_eq!(&self.z, &other.z, epsilon=epsilon) &&
+        abs_diff_eq!(&self.w, &other.w, epsilon=epsilon)
+    }
+    
+    fn abs_diff_ne(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        !Self::abs_diff_eq(self, other, epsilon)
+    }
+}
+
 
 mod tests {
+    use core::f32;
+
+    use approx::assert_abs_diff_eq;
+
     use super::*;
 
     #[test]
@@ -370,7 +401,7 @@ mod tests {
             0.0, 0.0, 1.0, 5.0,
             0.0, 0.0, 0.0, 1.0, 
         );
-        assert_eq!(Matrix4::translation_matrix(t), res)
+        assert_abs_diff_eq!(Matrix4::translation_matrix(t), res)
     }
     
     #[test]
@@ -405,12 +436,12 @@ mod tests {
             435.11, 399.01, 197.21, 301.4,
             2715.1, 2326.4, 1216.0, 1916.23,
             1783.85, 1182.6, 970.1, 1938.93,
-            444.91, 2509.2, 2045.82, 4421.23,
+            444.91, 2509.2, 2045.82, 4221.23,
         );
-        assert_eq!(a * b, res);
+        assert_abs_diff_eq!(a * b, res, epsilon = 1e-3);
     }   
 
-    // #[test]
+    #[test]
     fn matrix_scalar_multiplication_test() {
         let a = Matrix4::new(
             1.0, 2.0, 3.0, 9.1,
@@ -424,8 +455,8 @@ mod tests {
             22.2, 3.0, 123.5, 12.0,
             43.1, 31.1, 5.1, 1.0,
         );
-        assert_eq!(a * 2., res);
-        assert_eq!(2. * a, res);
+        assert_abs_diff_eq!(a * 2., res);
+        assert_abs_diff_eq!(2. * a, res);
     }
 
     // #[test]

@@ -1,8 +1,9 @@
 use std::ops::{self, Add, Div, Index, Mul, Neg, Sub};
 
+use approx::{AbsDiffEq, RelativeEq};
 use num::{ToPrimitive, pow};
 
-use crate::{Vector2, vector::vector::Vector};
+use crate::{Vector2, Vector4, vector::vector::Vector};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vector3 {
@@ -31,6 +32,14 @@ impl Vector3 {
             self.z * other.x - self.x * other.z,
             self.x * other.y - self.y * other.x,
         )
+    }
+
+    pub fn to_cartesian(vec: Vector4) -> Vector3 {
+        Vector3::new(vec.x / vec.w, vec.y / vec.w, vec.z / vec.w)
+    }
+
+    fn homogenous(&self) -> Vector4 {
+        Vector4::to_homogeneous(*self)
     }
 }
 
@@ -161,8 +170,31 @@ impl Index<usize> for Vector3 {
     }
 }
 
+// For approximate equals
+impl AbsDiffEq for Vector3 where
+    <f32 as AbsDiffEq>::Epsilon: Copy,
+{
+    type Epsilon = <f32 as AbsDiffEq>::Epsilon;
+
+    fn default_epsilon() -> Self::Epsilon {
+        Self::Epsilon::default_epsilon()
+    }
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        Self::Epsilon::abs_diff_eq(&self.x, &other.x, epsilon) &&
+        Self::Epsilon::abs_diff_eq(&self.y, &other.y, epsilon) &&
+        Self::Epsilon::abs_diff_eq(&self.z, &other.z, epsilon)
+    }
+    
+    fn abs_diff_ne(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        !Self::abs_diff_eq(self, other, epsilon)
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use approx::assert_abs_diff_eq;
+
     use super::*;
 
     #[test]
@@ -247,13 +279,13 @@ mod tests {
     fn negation_test() {
         let vec: Vector3 = Vector3::new(10., 20., 5.);
         let res: Vector3 = Vector3::new(-10., -20., -5.);
-        assert_eq!(-vec, res);
+        assert_abs_diff_eq!(-vec, res);
     }
 
     #[test]
     fn magnitude_test() {
         let a: Vector3 = Vector3::new(10., 18., 2.);
-        assert_eq!(a.length(), f32::sqrt(428.));
+        assert_abs_diff_eq!(a.length(), f32::sqrt(428.));
     }
 
     #[test]
@@ -265,7 +297,7 @@ mod tests {
             4. / f32::sqrt(21.),
         );
 
-        assert!((a.normalize() - b).length() <= 0.001);
+        assert_abs_diff_eq!(a.normalize(), b);
     }
 
 }

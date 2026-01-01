@@ -1,5 +1,6 @@
 use std::ops::{self, Add, AddAssign, Div, Index, Mul, MulAssign, Neg, Sub};
 
+use approx::{AbsDiffEq, RelativeEq};
 use num::{Num, ToPrimitive, pow};
 
 use crate::vector::vector::Vector;
@@ -148,8 +149,30 @@ impl Index<usize> for Vector2 {
     }
 }
 
+// For approximate equals
+impl AbsDiffEq for Vector2 where
+    <f32 as AbsDiffEq>::Epsilon: Copy,
+{
+    type Epsilon = <f32 as AbsDiffEq>::Epsilon;
+
+    fn default_epsilon() -> Self::Epsilon {
+        Self::Epsilon::default_epsilon()
+    }
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        Self::Epsilon::abs_diff_eq(&self.x, &other.x, epsilon) &&
+        Self::Epsilon::abs_diff_eq(&self.y, &other.y, epsilon)
+    }
+    
+    fn abs_diff_ne(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        !Self::abs_diff_eq(self, other, epsilon)
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use approx::assert_abs_diff_eq;
+
     use super::*;
 
     #[test]
@@ -228,14 +251,14 @@ mod tests {
     #[test]
     fn magnitude_test() {
         let a: Vector2 = Vector2 { x: 3., y: 4. };
-        assert_eq!(a.length(), 5.);
+        assert_abs_diff_eq!(a.length(), 5.);
     }
 
         #[test]
     fn normalize_test() {
         let a: Vector2 = Vector2::new(3, 4);
         let b: Vector2 = Vector2::new(3./5., 4./5.);
-        assert_eq!(a.normalize(), b);
+        assert_abs_diff_eq!(a.normalize(), b);
     }
 
     #[test]

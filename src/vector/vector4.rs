@@ -1,5 +1,6 @@
 use std::ops::{self, Add, Div, Index, Mul, Neg, Sub};
 
+use approx::AbsDiffEq;
 use num::{ToPrimitive, pow};
 
 use crate::{
@@ -44,6 +45,9 @@ impl Vector4 {
         Vector3::new(self.x, self.y, self.z)
     }
 
+    fn cartesian(&self) -> Vector3 {
+        Vector3::to_cartesian(*self)
+    }
 }
 
 impl Vector for Vector4 {
@@ -198,7 +202,32 @@ impl Index<usize> for Vector4 {
     }
 }
 
+// For approximate equals
+impl AbsDiffEq for Vector4 where
+    <f32 as AbsDiffEq>::Epsilon: Copy,
+{
+    type Epsilon = <f32 as AbsDiffEq>::Epsilon;
+
+    fn default_epsilon() -> Self::Epsilon {
+        Self::Epsilon::default_epsilon()
+    }
+
+    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        Self::Epsilon::abs_diff_eq(&self.x, &other.x, epsilon) &&
+        Self::Epsilon::abs_diff_eq(&self.y, &other.y, epsilon) &&
+        Self::Epsilon::abs_diff_eq(&self.z, &other.z, epsilon) &&
+        Self::Epsilon::abs_diff_eq(&self.w, &other.w, epsilon)
+    }
+    
+    fn abs_diff_ne(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        !Self::abs_diff_eq(self, other, epsilon)
+    }
+}
+
+
 mod tests {
+    use approx::assert_abs_diff_eq;
+
     use super::*;
 
     #[test]
@@ -206,31 +235,31 @@ mod tests {
         let a = Vector4::new(5, 10, 10, 5);
         let res = Vector4::new(10, 20, 20, 10.);
 
-        assert_eq!(a * 2., res);
-        assert_eq!(2. * a, res);
+        assert_abs_diff_eq!(a * 2., res);
+        assert_abs_diff_eq!(2. * a, res);
     }
 
     #[test]
     fn scalar_division_test() {
         let vec: Vector4 = Vector4::new(10., 20., 12., 44.);
-        assert_eq!(2. / vec, Vector4 { x: 1./5., y: 1./10., z: 1./6., w: 1./22.});
-        assert_eq!(vec / 2., Vector4 { x: 5., y: 10., z: 6., w: 22. });
+        assert_abs_diff_eq!(2. / vec, Vector4 { x: 1./5., y: 1./10., z: 1./6., w: 1./22.});
+        assert_abs_diff_eq!(vec / 2., Vector4 { x: 5., y: 10., z: 6., w: 22. });
     }
 
     #[test]
     fn scalar_addition_test() {
         let vec = Vector4::new(10., 20., 6., 123);
         let res = Vector4::new(12., 22., 8., 125.);
-        assert_eq!(2. + vec, res);
-        assert_eq!(vec + 2., res);
+        assert_abs_diff_eq!(2. + vec, res);
+        assert_abs_diff_eq!(vec + 2., res);
     }
 
     #[test]
     fn scalar_subtraction_test() {
         let vec: Vector4 = Vector4::new(10., 20., 5., 44.);
         let res: Vector4 = Vector4::new(8, 18, 3, 42.);
-        assert_eq!(2. - vec, -res);
-        assert_eq!(vec - 2., res);
+        assert_abs_diff_eq!(2. - vec, -res);
+        assert_abs_diff_eq!(vec - 2., res);
     }
 
 
@@ -239,8 +268,8 @@ mod tests {
         let a: Vector4 = Vector4::new(10., 39., 29., 55.);
         let b: Vector4 = Vector4::new(2., 520., 25., 22.);
         let res: Vector4 = Vector4::new(12, 559, 54, 77.);
-        assert_eq!(a + b, res);
-        assert_eq!(b + a, res);
+        assert_abs_diff_eq!(a + b, res);
+        assert_abs_diff_eq!(b + a, res);
     }
 
     #[test]
@@ -248,8 +277,8 @@ mod tests {
         let a: Vector4 = Vector4::new(10., 39., 23., 431.);
         let b: Vector4 = Vector4::new(3., 519., 4., 11.);
         let res: Vector4 = Vector4::new(7, -480, 19, 420);
-        assert_eq!(a - b, res);
-        assert_eq!(b - a, -res);
+        assert_abs_diff_eq!(a - b, res);
+        assert_abs_diff_eq!(b - a, -res);
     }
     
     #[test]
@@ -258,7 +287,7 @@ mod tests {
         let b = Vector4::new(3, 4, 5, 643);
         let res = 3884.0;
 
-        assert_eq!(a.dot(b), res);
+        assert_abs_diff_eq!(a.dot(b), res);
     }
 
     #[test]
@@ -266,21 +295,21 @@ mod tests {
         let a = Vector4::new(10, 2., 12., 321.);
         let b = Vector4::new(4., 2., 9., 91.);
         let res = Vector4::new(40., 4., 108., 29211.);
-        assert_eq!(a * b, res);
-        assert_eq!(b * a, res);
+        assert_abs_diff_eq!(a * b, res);
+        assert_abs_diff_eq!(b * a, res);
     }
 
     #[test]
     fn negation_test() {
         let vec: Vector4 = Vector4::new(10., 20., 5., -12434);
         let res: Vector4 = Vector4::new(-10., -20., -5., 12434);
-        assert_eq!(-vec, res);
+        assert_abs_diff_eq!(-vec, res);
     }
 
     #[test]
     fn magnitude_test() {
         let a: Vector4 = Vector4::new(10., 18., 2., 99.);
-        assert_eq!(a.length(), f32::sqrt(10229.));
+        assert_abs_diff_eq!(a.length(), f32::sqrt(10229.));
     }
 
     #[test]
@@ -293,7 +322,7 @@ mod tests {
             99. / f32::sqrt(10326.),
         );
 
-        assert!((a.normalize() - b).length() <= 0.001);
+        assert_abs_diff_eq!(a.normalize(), b);
     }
 
 }

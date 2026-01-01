@@ -1,5 +1,7 @@
 use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 
+use approx::{AbsDiffEq, abs_diff_eq};
+
 use crate::{matrix::{matrix::Matrix, rotation::{Angle, Rotation}, scale::Scale}, vector::vector3::Vector3};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -295,6 +297,27 @@ impl Index<usize> for Matrix3 {
             2 => &self.z,
             _ => panic!("Index out of range"),
         }
+    }
+}
+
+// For approximate equals
+impl AbsDiffEq for Matrix3 where
+    <f32 as AbsDiffEq>::Epsilon: Copy,
+{
+    type Epsilon = <f32 as AbsDiffEq>::Epsilon;
+
+    fn default_epsilon() -> Self::Epsilon {
+        Self::Epsilon::default_epsilon()
+    }
+    
+    fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        abs_diff_eq!(&self.x, &other.x, epsilon=epsilon) &&
+        abs_diff_eq!(&self.y, &other.y, epsilon=epsilon) &&
+        abs_diff_eq!(&self.z, &other.z, epsilon=epsilon)
+    }
+    
+    fn abs_diff_ne(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
+        !Self::abs_diff_eq(self, other, epsilon)
     }
 }
 
