@@ -160,6 +160,13 @@ mod tests {
     }
 
     #[test]
+    fn scalar_division_test() {
+        let vec: Vector2 = Vector2::new(10., 20.);
+        assert_eq!(2. / vec, Vector2 { x: 1./5., y: 1./10. });
+        assert_eq!(vec / 2., Vector2 { x: 5., y: 10. });
+    }
+
+    #[test]
     fn scalar_addition_test() {
         let vec: Vector2 = Vector2::new(10., 20.);
         let res = Vector2::new(12., 22.);
@@ -194,6 +201,23 @@ mod tests {
     }
 
     #[test]
+    fn dot_product_test() {
+        let a: Vector2 = Vector2::new(10., 2.);
+        let b: Vector2 = Vector2::new(4., 2.);
+        assert_eq!(a.dot(b), 44.);
+        println!("{:?}", b);
+    }
+    
+    #[test]
+    fn hadamard_product_test() {
+        let a: Vector2 = Vector2::new(10, 2.);
+        let b: Vector2 = Vector2::new(4., 2.);
+        let res: Vector2 = Vector2::new(40., 4.);
+        assert_eq!(a * b, res);
+        assert_eq!(b * a, res);
+    }
+
+    #[test]
     fn negation_test() {
         let vec: Vector2 = Vector2::new(10., 20.);
         let res: Vector2 = Vector2::new(-10., -20.);
@@ -207,24 +231,7 @@ mod tests {
         assert_eq!(a.length(), 5.);
     }
 
-    #[test]
-    fn dot_product_test() {
-        let a: Vector2 = Vector2::new(10., 2.);
-        let b: Vector2 = Vector2::new(4., 2.);
-        assert_eq!(a.dot(b), 44.);
-        println!("{:?}", b);
-    }
-
-    #[test]
-    fn hadamard_product_test() {
-        let a: Vector2 = Vector2::new(10, 2.);
-        let b: Vector2 = Vector2::new(4., 2.);
-        let res: Vector2 = Vector2::new(40., 4.);
-        assert_eq!(a * b, res);
-        assert_eq!(b * a, res);
-    }
-
-    #[test]
+        #[test]
     fn normalize_test() {
         let a: Vector2 = Vector2::new(3, 4);
         let b: Vector2 = Vector2::new(3./5., 4./5.);

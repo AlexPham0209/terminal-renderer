@@ -1,13 +1,13 @@
 use std::ops::{Add, Div, Index, Mul, Sub};
 
-use crate::{matrix::matrix::Matrix, vector::vector4::Vector4};
+use crate::{matrix::{matrix::Matrix, matrix3::Matrix3}, vector::{vector3::Vector3, vector4::Vector4}};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix4 {
-    x: Vector4,
-    y: Vector4,
-    z: Vector4,
-    w: Vector4,
+    pub x: Vector4,
+    pub y: Vector4,
+    pub z: Vector4,
+    pub w: Vector4,
 }
 
 impl Matrix4 {
@@ -47,6 +47,14 @@ impl Matrix4 {
 
     pub fn from_cols(x: Vector4, y: Vector4, z: Vector4, w: Vector4) -> Self {
         Self { x, y, z, w }
+    }
+
+    pub fn to_homogenous(mat: Matrix3, position: Vector3) -> Matrix4 {
+        let x = Vector4::to_vector4(mat.x, 0.0);
+        let y = Vector4::to_vector4(mat.y, 0.0);
+        let z = Vector4::to_vector4(mat.z, 0.0);
+        let w = Vector4::to_vector4(position, 1.0);
+        Matrix4::from_cols(x, y, z, w)
     }
 }
 
@@ -237,4 +245,185 @@ impl Sub<Matrix4> for Matrix4 {
         let w = self.w - other.w;
         Matrix4::from_cols(x, y, z, w)
     }
+}
+
+
+mod tests {
+    use crate::matrix::matrix2::Matrix2;
+
+    use super::*;
+
+    #[test]
+    fn indexing_test() {
+        let x = Vector3::new(10, 5, 2);
+        let y = Vector3::new(7, 2, 1);
+        let z = Vector3::new(12, 9, 3);
+        let mat = Matrix3::from_cols(x, y, z);
+
+        // First index (column), second index (Row)
+        assert_eq!(mat[0][0], 10.0);
+        assert_eq!(mat[0][1], 5.0);
+        assert_eq!(mat[0][2], 2.0);
+        assert_eq!(mat[1][0], 7.0);
+        assert_eq!(mat[1][1], 2.0);
+        assert_eq!(mat[1][2], 1.0);
+        assert_eq!(mat[2][0], 12.0);
+        assert_eq!(mat[2][1], 9.0);
+        assert_eq!(mat[2][2], 3.0);
+    }
+
+    #[test]
+    fn transpose_test() {
+        let a = Matrix4::from_rows(
+            Vector4::new(10, 2, 3, 12),
+            Vector4::new(5, 12, 11, 5),
+            Vector4::new(9, 1, 4, 912),
+            Vector4::new(5, 23, 11, 55),
+        );
+        let t = Matrix4::from_rows(
+            Vector4::new(10, 5, 9, 5),
+            Vector4::new(2, 12, 1, 23),
+            Vector4::new(3, 11, 4, 11),
+            Vector4::new(12, 5, 912, 55),
+        );
+
+        assert_eq!(a.transpose(), t)
+    }
+
+    #[test]
+    fn matrix_vector_multiplication_test() {
+        let a = Matrix4::new(
+            1.0, 2.0, 3.0, 9.1,
+            2.1, 12.0, 29.0, 55.0,
+            11.1, 3.0, 123.5, 12.0,
+            43.1, 31.1, 5.1, 1.0,
+        );
+        let b = Vector4::new(2, 3, 4, 5);
+        let res = Vector4::new(65.5, 431.2, 585.2, 204.9);
+        assert_eq!(a * b, res);
+    }
+
+    #[test]
+    fn matrix_multiplication_test() {
+        let a = Matrix4::new(
+            1.0, 2.0, 3.0, 9.1,
+            2.1, 12.0, 29.0, 55.0,
+            11.1, 3.0, 123.5, 12.0,
+            43.1, 31.1, 5.1, 1.0,
+        );
+        let b = Matrix4::new(
+            5.0, 29.0, 7.0, 6.3,
+            4.4, 39.0, 55.0, 125.0,
+            9.7, 3.0, 5.2, 12.0,
+            43.1, 31.1, 7.1, 1.0,
+        );
+        let res = Matrix4::new(
+            435.11, 399.01, 197.21, 301.4,
+            2715.1, 2326.4, 1216.0, 1916.23,
+            1783.85, 1182.6, 970.1, 1938.93,
+            444.91, 2509.2, 2045.82, 4421.23,
+        );
+        assert_eq!(a * b, res);
+    }   
+
+    // #[test]
+    fn matrix_scalar_multiplication_test() {
+        let a = Matrix4::new(
+            1.0, 2.0, 3.0, 9.1,
+            2.1, 12.0, 29.0, 55.0,
+            11.1, 3.0, 123.5, 12.0,
+            43.1, 31.1, 5.1, 1.0,
+        );
+        let res = Matrix4::new(
+            2.0, 2.0, 3.0, 9.1,
+            4.2, 12.0, 29.0, 55.0,
+            22.2, 3.0, 123.5, 12.0,
+            43.1, 31.1, 5.1, 1.0,
+        );
+        assert_eq!(a * 2., res);
+        assert_eq!(2. * a, res);
+    }
+
+    // #[test]
+    // fn matrix_scalar_division_test() {
+    //     let a = Matrix2::new(2.0, 4.0, 6.0, 4.0);
+    //     let b = Matrix2::new(1.0, 2.0, 3.0, 2.0);
+    //     let c = Matrix2::new(1.0, 0.5, 0.33333334, 0.5);
+    //     assert_eq!(a / 2., b);
+    //     assert_eq!(2. / a, c);
+    // }
+
+    // #[test]
+    // fn matrix_scalar_addition_test() {
+    //     let a = Matrix3::new(
+    //         1.0, 2.0, 3.0, 
+    //         2.1, 12.0, 29.0,
+    //         11.1, 3.0, 123.5,
+    //     );
+    //     let res = Matrix3::new(
+    //         3.0, 4.0, 5.0, 
+    //         4.1, 14.0, 31.0,
+    //         13.1, 5.0, 125.5,
+    //     );
+    //     assert_eq!(a + 2., res);
+    //     assert_eq!(2. + a, res);
+    // }
+
+    // #[test]
+    // fn matrix_scalar_subtraction_test() {
+    //     let a = Matrix3::new(
+    //         1.0, 2.0, 3.0, 
+    //         5.0, 12.0, 29.0,
+    //         11.1, 3.0, 123.5,
+    //     );
+    //     let res = Matrix3::new(
+    //         -1.0, 0.0, 1.0, 
+    //         3.0, 10.0, 27.0,
+    //         9.1, 1.0, 121.5,
+    //     );
+    //     assert_eq!(a - 2., res);
+    //     assert_eq!(2. - a, -res);
+    // }
+
+    // #[test]
+    // fn matrix_addition_test() {
+    //     let a = Matrix3::new(
+    //         1.0, 2.0, 3.0, 
+    //         2.11, 12.0, 29.0,
+    //         11.1, 3.0, 123.5,
+    //     );
+    //     let b = Matrix3::new(
+    //         5.5, 1.1, 6.0, 
+    //         9.5, 111.0, 74.0,
+    //         81.1, 99.0, -2.0,
+    //     );
+    //     let res = Matrix3::new(
+    //         6.5, 3.1, 9.0, 
+    //         11.61, 123.0, 103.0,
+    //         92.2, 102.0, 121.5,
+    //     );
+    //     assert_eq!(a + b, res);
+    //     assert_eq!(b + a, res);
+    // }
+
+    // #[test]
+    // fn matrix_subtraction_test() {
+    //     let a = Matrix3::new(
+    //         1.0, 2.0, 3.0, 
+    //         2.1, 12.0, 29.0,
+    //         11.1, 3.0, 123.5,
+    //     );
+    //     let b = Matrix3::new(
+    //         5.5, 1.1, 6.0, 
+    //         9.5, 111.0, 74.0,
+    //         81.1, 99.0, -2.0,
+    //     );
+    //     let res = Matrix3::new(
+    //         -4.5, 0.9, -3.0, 
+    //         -7.4, -99.0, -45.0,
+    //         -70.0, -96.0, 125.5,
+    //     );
+    //     assert_eq!(a - b, res);
+    //     assert_eq!(b - a, -res);
+    // }
 }

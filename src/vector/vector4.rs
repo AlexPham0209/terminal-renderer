@@ -32,9 +32,16 @@ impl Vector4 {
     }
 
     pub fn to_homogenous(v: Vector3) -> Vector4 {
-        let Vector3 { x, y, z } = v;
-        Vector4::new(x, y, z, 1.0)
+        Vector4::to_vector4(v, 1.0)
     }
+    
+    pub fn to_vector4(v: Vector3, w: f32) -> Vector4 {
+        let Vector3 { x, y, z } = v;
+        Vector4::new(x, y, z, w)
+    }
+
+
+
 }
 
 impl Vector for Vector4 {
@@ -74,10 +81,10 @@ impl Sub<Vector4> for Vector4 {
 
     fn sub(self, other: Vector4) -> Vector4 {
         Vector4::new(
-            other.x - self.x,
-            other.y - self.y,
-            other.z - self.z,
-            other.w - self.w,
+            self.x - other.x,
+            self.y - other.y,
+            self.z - other.z,
+            self.w - other.w,
         )
     }
 }
@@ -98,7 +105,7 @@ impl Add<f32> for Vector4 {
 impl Add<Vector4> for f32 {
     type Output = Vector4;
     fn add(self, vec: Vector4) -> Vector4 {
-        Vector4::new(self + vec.x, self + vec.y, self + vec.y, self + vec.w)
+        Vector4::new(self + vec.x, self + vec.y, self + vec.z, self + vec.w)
     }
 }
 
@@ -187,4 +194,104 @@ impl Index<usize> for Vector4 {
             _ => panic!("Index out of range"),
         }
     }
+}
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn scalar_multiplication_test() {
+        let a = Vector4::new(5, 10, 10, 5);
+        let res = Vector4::new(10, 20, 20, 10.);
+
+        assert_eq!(a * 2., res);
+        assert_eq!(2. * a, res);
+    }
+
+    #[test]
+    fn scalar_division_test() {
+        let vec: Vector4 = Vector4::new(10., 20., 12., 44.);
+        assert_eq!(2. / vec, Vector4 { x: 1./5., y: 1./10., z: 1./6., w: 1./22.});
+        assert_eq!(vec / 2., Vector4 { x: 5., y: 10., z: 6., w: 22. });
+    }
+
+    #[test]
+    fn scalar_addition_test() {
+        let vec = Vector4::new(10., 20., 6., 123);
+        let res = Vector4::new(12., 22., 8., 125.);
+        assert_eq!(2. + vec, res);
+        assert_eq!(vec + 2., res);
+    }
+
+    #[test]
+    fn scalar_subtraction_test() {
+        let vec: Vector4 = Vector4::new(10., 20., 5., 44.);
+        let res: Vector4 = Vector4::new(8, 18, 3, 42.);
+        assert_eq!(2. - vec, -res);
+        assert_eq!(vec - 2., res);
+    }
+
+
+    #[test]
+    fn vector_addition_test() {
+        let a: Vector4 = Vector4::new(10., 39., 29., 55.);
+        let b: Vector4 = Vector4::new(2., 520., 25., 22.);
+        let res: Vector4 = Vector4::new(12, 559, 54, 77.);
+        assert_eq!(a + b, res);
+        assert_eq!(b + a, res);
+    }
+
+    #[test]
+    fn vector_subtraction_test() {
+        let a: Vector4 = Vector4::new(10., 39., 23., 431.);
+        let b: Vector4 = Vector4::new(3., 519., 4., 11.);
+        let res: Vector4 = Vector4::new(7, -480, 19, 420);
+        assert_eq!(a - b, res);
+        assert_eq!(b - a, -res);
+    }
+    
+    #[test]
+    fn dot_product_test() {
+        let a = Vector4::new(1, 2, 3, 6);
+        let b = Vector4::new(3, 4, 5, 643);
+        let res = 3884.0;
+
+        assert_eq!(a.dot(b), res);
+    }
+
+    #[test]
+    fn hadamard_product_test() {
+        let a = Vector4::new(10, 2., 12., 321.);
+        let b = Vector4::new(4., 2., 9., 91.);
+        let res = Vector4::new(40., 4., 108., 29211.);
+        assert_eq!(a * b, res);
+        assert_eq!(b * a, res);
+    }
+
+    #[test]
+    fn negation_test() {
+        let vec: Vector4 = Vector4::new(10., 20., 5., -12434);
+        let res: Vector4 = Vector4::new(-10., -20., -5., 12434);
+        assert_eq!(-vec, res);
+    }
+
+    #[test]
+    fn magnitude_test() {
+        let a: Vector4 = Vector4::new(10., 18., 2., 99.);
+        assert_eq!(a.length(), f32::sqrt(10229.));
+    }
+
+    #[test]
+    fn normalize_test() {
+        let a: Vector4 = Vector4::new(10, 5, 20, 99);
+        let b: Vector4 = Vector4::new(
+            10. / f32::sqrt(10326.),
+            5. / f32::sqrt(10326.),
+            20. / f32::sqrt(10326.),
+            99. / f32::sqrt(10326.),
+        );
+
+        assert!((a.normalize() - b).length() <= 0.001);
+    }
+
 }

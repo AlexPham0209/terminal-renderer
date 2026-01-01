@@ -4,8 +4,8 @@ use crate::{Vector2, matrix::matrix::Matrix, vector::vector3::Vector3};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix2 {
-    x: Vector2,
-    y: Vector2,
+    pub x: Vector2,
+    pub y: Vector2,
 }
 
 impl Matrix2 {

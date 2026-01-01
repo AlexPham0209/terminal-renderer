@@ -1,12 +1,12 @@
-use std::ops::{Add, Div, Index, Mul, Sub};
+use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 
 use crate::{matrix::matrix::Matrix, vector::vector3::Vector3};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix3 {
-    x: Vector3,
-    y: Vector3,
-    z: Vector3,
+    pub x: Vector3,
+    pub y: Vector3,
+    pub z: Vector3,
 }
 
 impl Matrix3 {
@@ -216,6 +216,15 @@ impl Sub<Matrix3> for Matrix3 {
     }
 }
 
+// Matrix negation
+impl Neg for Matrix3 {
+    type Output = Matrix3;
+
+    fn neg(self) -> Matrix3 {
+        Matrix3::from_cols(-self.x, -self.y, -self.z)
+    }
+}
+
 
 mod tests {
     use crate::matrix::matrix2::Matrix2;
@@ -251,7 +260,7 @@ mod tests {
         let t = Matrix3::from_rows(
             Vector3::new(10, 5, 9),
             Vector3::new(2, 12, 1),
-            Vector3::new(39, 11, 4),
+            Vector3::new(3, 11, 4),
         );
         assert_eq!(a.transpose(), t)
     }
@@ -315,34 +324,74 @@ mod tests {
 
     #[test]
     fn matrix_scalar_addition_test() {
-        let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
-        let res = Matrix2::new(3.0, 4.0, 5.0, 4.0);
+        let a = Matrix3::new(
+            1.0, 2.0, 3.0, 
+            2.1, 12.0, 29.0,
+            11.1, 3.0, 123.5,
+        );
+        let res = Matrix3::new(
+            3.0, 4.0, 5.0, 
+            4.1, 14.0, 31.0,
+            13.1, 5.0, 125.5,
+        );
         assert_eq!(a + 2., res);
         assert_eq!(2. + a, res);
     }
 
     #[test]
     fn matrix_scalar_subtraction_test() {
-        let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
-        let res: Matrix2 = Matrix2::new(-1.0, 0.0, 1.0, 0.0);
+        let a = Matrix3::new(
+            1.0, 2.0, 3.0, 
+            5.0, 12.0, 29.0,
+            11.1, 3.0, 123.5,
+        );
+        let res = Matrix3::new(
+            -1.0, 0.0, 1.0, 
+            3.0, 10.0, 27.0,
+            9.1, 1.0, 121.5,
+        );
         assert_eq!(a - 2., res);
         assert_eq!(2. - a, -res);
     }
 
     #[test]
     fn matrix_addition_test() {
-        let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
-        let b =  Matrix2::new(1.5, 12.0, 5.0, -2.0);
-        let res: Matrix2 = Matrix2::new(2.5, 14.0, 8.0, 0.0);
+        let a = Matrix3::new(
+            1.0, 2.0, 3.0, 
+            2.11, 12.0, 29.0,
+            11.1, 3.0, 123.5,
+        );
+        let b = Matrix3::new(
+            5.5, 1.1, 6.0, 
+            9.5, 111.0, 74.0,
+            81.1, 99.0, -2.0,
+        );
+        let res = Matrix3::new(
+            6.5, 3.1, 9.0, 
+            11.61, 123.0, 103.0,
+            92.2, 102.0, 121.5,
+        );
         assert_eq!(a + b, res);
         assert_eq!(b + a, res);
     }
 
     #[test]
     fn matrix_subtraction_test() {
-        let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
-        let b =  Matrix2::new(1.5, 12.0, 5.0, -2.0);
-        let res: Matrix2 = Matrix2::new(-0.5, -10.0, -2.0, 4.0);
+        let a = Matrix3::new(
+            1.0, 2.0, 3.0, 
+            2.1, 12.0, 29.0,
+            11.1, 3.0, 123.5,
+        );
+        let b = Matrix3::new(
+            5.5, 1.1, 6.0, 
+            9.5, 111.0, 74.0,
+            81.1, 99.0, -2.0,
+        );
+        let res = Matrix3::new(
+            -4.5, 0.9, -3.0, 
+            -7.4, -99.0, -45.0,
+            -70.0, -96.0, 125.5,
+        );
         assert_eq!(a - b, res);
         assert_eq!(b - a, -res);
     }

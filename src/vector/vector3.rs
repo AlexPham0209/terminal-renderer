@@ -80,7 +80,7 @@ impl Add<f32> for Vector3 {
 impl Add<Vector3> for f32 {
     type Output = Vector3;
     fn add(self, vec: Vector3) -> Vector3 {
-        Vector3::new(self + vec.x, self + vec.y, self + vec.y)
+        Vector3::new(self + vec.x, self + vec.y, self + vec.z)
     }
 }
 
@@ -175,15 +175,18 @@ mod tests {
     }
 
     #[test]
-    fn normalize_test() {
-        let a: Vector3 = Vector3::new(10, 5, 20);
-        let b: Vector3 = Vector3::new(
-            2. / f32::sqrt(21.),
-            1. / f32::sqrt(21.),
-            4. / f32::sqrt(21.),
-        );
+    fn scalar_division_test() {
+        let vec: Vector3 = Vector3::new(10., 20., 12.);
+        assert_eq!(2. / vec, Vector3 { x: 1./5., y: 1./10., z: 1./6. });
+        assert_eq!(vec / 2., Vector3 { x: 5., y: 10., z: 6. });
+    }
 
-        assert!((a.normalize() - b).length() <= 0.001);
+    #[test]
+    fn scalar_addition_test() {
+        let vec = Vector3::new(10., 20., 6.);
+        let res = Vector3::new(12., 22., 8.);
+        assert_eq!(2. + vec, res);
+        assert_eq!(vec + 2., res);
     }
 
     #[test]
@@ -194,12 +197,6 @@ mod tests {
         assert_eq!(vec - 2., res);
     }
 
-    #[test]
-    fn negation_test() {
-        let vec: Vector3 = Vector3::new(10., 20., 5.);
-        let res: Vector3 = Vector3::new(-10., -20., -5.);
-        assert_eq!(-vec, res);
-    }
 
     #[test]
     fn vector_addition_test() {
@@ -218,14 +215,7 @@ mod tests {
         assert_eq!(a - b, res);
         assert_eq!(b - a, -res);
     }
-
-
-    #[test]
-    fn magnitude_test() {
-        let a: Vector3 = Vector3::new(10., 18., 2.);
-        assert_eq!(a.length(), f32::sqrt(428.));
-    }
-
+    
     #[test]
     fn dot_product_test() {
         let a = Vector3::new(1, 2, 3);
@@ -243,4 +233,39 @@ mod tests {
 
         assert_eq!(a.cross(b), res);
     }
+
+    #[test]
+    fn hadamard_product_test() {
+        let a: Vector3 = Vector3::new(10, 2., 12.);
+        let b: Vector3 = Vector3::new(4., 2., 9.);
+        let res: Vector3 = Vector3::new(40., 4., 108.);
+        assert_eq!(a * b, res);
+        assert_eq!(b * a, res);
+    }
+
+    #[test]
+    fn negation_test() {
+        let vec: Vector3 = Vector3::new(10., 20., 5.);
+        let res: Vector3 = Vector3::new(-10., -20., -5.);
+        assert_eq!(-vec, res);
+    }
+
+    #[test]
+    fn magnitude_test() {
+        let a: Vector3 = Vector3::new(10., 18., 2.);
+        assert_eq!(a.length(), f32::sqrt(428.));
+    }
+
+    #[test]
+    fn normalize_test() {
+        let a: Vector3 = Vector3::new(10, 5, 20);
+        let b: Vector3 = Vector3::new(
+            2. / f32::sqrt(21.),
+            1. / f32::sqrt(21.),
+            4. / f32::sqrt(21.),
+        );
+
+        assert!((a.normalize() - b).length() <= 0.001);
+    }
+
 }
