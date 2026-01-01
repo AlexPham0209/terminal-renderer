@@ -75,6 +75,7 @@ fn main() {
                 grid.set('#', x as usize, y as usize);
             }
         }
+        
     }
     println!("{grid}");
 }

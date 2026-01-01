@@ -31,11 +31,11 @@ impl Vector4 {
         }
     }
 
-    pub fn to_homogenous(v: Vector3) -> Vector4 {
-        Vector4::to_vector4(v, 1.0)
+    pub fn to_homogeneous(v: Vector3) -> Vector4 {
+        Vector4::from_vector3(v, 1.0)
     }
     
-    pub fn to_vector4(v: Vector3, w: f32) -> Vector4 {
+    pub fn from_vector3(v: Vector3, w: f32) -> Vector4 {
         let Vector3 { x, y, z } = v;
         Vector4::new(x, y, z, w)
     }

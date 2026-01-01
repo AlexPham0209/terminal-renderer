@@ -36,7 +36,7 @@ impl Matrix4 {
         Matrix4::from_rows(x, y, z, w)
     }
 
-    fn from_rows(x: Vector4, y: Vector4, z: Vector4, w: Vector4) -> Self {
+    pub fn from_rows(x: Vector4, y: Vector4, z: Vector4, w: Vector4) -> Self {
         Self {
             x: Vector4::new(x[0], y[0], z[0], w[0]),
             y: Vector4::new(x[1], y[1], z[1], w[1]),
@@ -49,11 +49,11 @@ impl Matrix4 {
         Self { x, y, z, w }
     }
 
-    pub fn to_homogenous(mat: Matrix3, position: Vector3) -> Matrix4 {
-        let x = Vector4::to_vector4(mat.x, 0.0);
-        let y = Vector4::to_vector4(mat.y, 0.0);
-        let z = Vector4::to_vector4(mat.z, 0.0);
-        let w = Vector4::to_vector4(position, 1.0);
+    pub fn from_matrix3(mat: Matrix3) -> Matrix4 {
+        let x = Vector4::from_vector3(mat.x, 0.0);
+        let y = Vector4::from_vector3(mat.y, 0.0);
+        let z = Vector4::from_vector3(mat.z, 0.0);
+        let w = Vector4::new(0.0, 0.0, 0.0, 1.0);
         Matrix4::from_cols(x, y, z, w)
     }
 }
@@ -291,6 +291,24 @@ mod tests {
     }
 
     #[test]
+    fn from_matrix3_test() {
+        let a = Matrix3::new(
+            1.0, 2.0, 3.0,
+            4.0, 5.0, 6.0,
+            7.0, 8.0, 9.0
+        );
+
+        let res = Matrix4::new(
+            1.0, 2.0, 3.0, 0.0,
+            4.0, 5.0, 6.0, 0.0, 
+            7.0, 8.0, 9.0, 0.0, 
+            0.0, 0.0, 0.0, 1.0
+        );
+
+        assert_eq!(Matrix4::from_matrix3(a), res)
+    }
+    
+    #[test]
     fn matrix_vector_multiplication_test() {
         let a = Matrix4::new(
             1.0, 2.0, 3.0, 9.1,
@@ -302,6 +320,7 @@ mod tests {
         let res = Vector4::new(65.5, 431.2, 585.2, 204.9);
         assert_eq!(a * b, res);
     }
+
 
     #[test]
     fn matrix_multiplication_test() {
