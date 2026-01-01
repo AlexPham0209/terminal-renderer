@@ -56,6 +56,14 @@ impl Matrix4 {
         let w = Vector4::new(0.0, 0.0, 0.0, 1.0);
         Matrix4::from_cols(x, y, z, w)
     }
+
+    pub fn to_matrix3(&self) -> Matrix3 {
+        Matrix3::from_cols(
+            self.x.to_vector3(),
+            self.y.to_vector3(),
+            self.z.to_vector3()
+        )
+    }
 }
 
 impl Matrix for Matrix4 {
