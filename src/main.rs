@@ -7,8 +7,8 @@ use crate::{matrix::{matrix4::Matrix4, rotation::{Angle, Rotation}, scale::Scale
 pub use crate::vector::vector4::Vector4;
 pub use grid::Grid;
 
-const WIDTH: usize = 50;
-const HEIGHT: usize = 25;
+const WIDTH: usize = 100;
+const HEIGHT: usize = 50;
 
 struct Triangle {
     a: Vector3,
@@ -40,12 +40,12 @@ fn to_screen_coordinates(vec: Vector3) -> Vector3 {
 
 
 fn main() {
-    let mut grid = Grid::new('.', WIDTH, HEIGHT);
+    let mut grid = Grid::new(' ', WIDTH, HEIGHT);
 
     let tri: Triangle = Triangle {
         a: Vector3::new(-0.5, -0.5, 0.0),
         b: Vector3::new(0.5, -0.5, 0.0),
-        c: Vector3::new(0.5, 0.5, 0.0),
+        c: Vector3::new(0.0, 0.5, 0.0),
     };
 
     let mut pitch = 0.0;
@@ -64,7 +64,7 @@ fn main() {
                 let c = c.homogenous();
 
                 // Scaling matrix
-                let scale = Matrix4::scale(0.2);
+                let scale = Matrix4::scale(0.75);
 
                 // Rotation matrix
                 let rotation = Matrix4::rotation(
@@ -74,7 +74,7 @@ fn main() {
                 );
 
                 // Translation matrix
-                let position = Vector3::new(0.0, 0.0, 0.0);
+                let position = Vector3::new(0.0, 0.0, 0.5);
                 let translation = Matrix4::translation(position);
 
                 // Perspective matrix
@@ -107,14 +107,13 @@ fn main() {
                 }
             }
         }
-        println!("{grid}");
-
+        print!("{grid}");
         print!("\x1B[2J\x1B[1;1H");
-        grid.clear('.');
+        grid.clear(' ');
 
         // roll += 0.5;
-        yaw += 0.5;
-        pitch += 0.5;
+        yaw += 5.0;
+        pitch += 5.0;
 
     }
 }
