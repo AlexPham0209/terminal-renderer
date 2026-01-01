@@ -3,8 +3,15 @@ mod matrix;
 mod vector;
 
 pub use crate::vector::vector2::Vector2;
-use crate::{matrix::{matrix4::Matrix4, rotation::{Angle, Rotation}, scale::Scale}, vector::{vector::Vector, vector3::Vector3}};
 pub use crate::vector::vector4::Vector4;
+use crate::{
+    matrix::{
+        matrix4::Matrix4,
+        rotation::{Angle, Rotation},
+        scale::Scale,
+    },
+    vector::{vector::Vector, vector3::Vector3},
+};
 pub use grid::Grid;
 
 const WIDTH: usize = 100;
@@ -16,7 +23,6 @@ struct Triangle {
     c: Vector3,
 }
 
-
 // Make sure that points are in counter-clockwise order
 fn edge_function(a: &Vector3, b: &Vector3, c: &Vector3) -> f32 {
     // Calculates vector representing the line from point A to C
@@ -24,7 +30,7 @@ fn edge_function(a: &Vector3, b: &Vector3, c: &Vector3) -> f32 {
 
     // Calculate the vector representing the triangle edge (A to B)
     let ab = *a - *b;
-    
+
     // Calculating the normal/perpendicular vector of the AB side.
     let ab_perp = Vector3::new(ab.y, -ab.x, ab.z);
 
@@ -51,7 +57,6 @@ fn to_screen_coordinates(vec: Vector3) -> Vector3 {
     vec
 }
 
-
 fn main() {
     let mut grid = Grid::new(' ', WIDTH, HEIGHT);
 
@@ -66,53 +71,65 @@ fn main() {
     let mut roll = 0.0;
 
     loop {
-        for y in 0..grid.height {
-            for x in 0..grid.width {
-                let Triangle {a, b, c} = tri;
+        let Triangle { a, b, c } = tri;
+
+        // Convert to homogenous coordinates
+        let a = a.homogenous();
+        let b = b.homogenous();
+        let c = c.homogenous();
+
+        // Scaling matrix
+        let scale = Matrix4::scale(0.75);
+
+        // Rotation matrix
+        let rotation = Matrix4::rotation(
+            Angle::Degrees(pitch),
+            Angle::Degrees(yaw),
+            Angle::Degrees(roll),
+        );
+
+        // Translation matrix
+        let position = Vector3::new(0.5, 0.0, 0.75);
+        let translation = Matrix4::translation(position);
+
+        // Perspective matrix
+        let fov = Angle::Degrees(90.0);
+        let z_far = 1000.0;
+        let z_near = 0.1;
+        let aspect = (WIDTH as f32) / (HEIGHT as f32);
+        let perspective = Matrix4::perspective(fov, z_far, z_near, aspect);
+
+        // Transform points using matrices
+        let a = perspective * translation * rotation * scale * a;
+        let b = perspective * translation * rotation * scale * b;
+        let c = perspective * translation * rotation * scale * c;
+
+        // Convert back to cartesian coordinates
+        let a = a.cartesian();
+        let b = b.cartesian();
+        let c = c.cartesian();
+
+        // Convert points to screen coordinates
+        let a = to_screen_coordinates(a);
+        let b = to_screen_coordinates(b);
+        let c = to_screen_coordinates(c);
+
+        let t = Triangle {a, b, c};
+
+        // Calculate triangle bounding box
+        let min_x = f32::min(a.x, f32::min(b.x, c.x));
+        let min_y = f32::min(a.y, f32::min(b.y, c.y));
+        let max_x = f32::max(a.x, f32::max(b.x, c.x));
+        let max_y = f32::max(a.y, f32::max(b.y, c.y));
+
+        let min_x = usize::clamp(min_x as usize, 0, WIDTH);
+        let min_y = usize::clamp(min_y as usize, 0, HEIGHT);
+        let max_x = usize::clamp(max_x as usize, 0, WIDTH);
+        let max_y = usize::clamp(max_y as usize, 0, HEIGHT);
+
+        for y in min_y..max_y {
+            for x in min_x..max_x {
                 let p = Vector3::new(x, y, 0.0);
-
-                // Convert to homogenous coordinates
-                let a = a.homogenous();
-                let b = b.homogenous();
-                let c = c.homogenous();
-
-                // Scaling matrix
-                let scale = Matrix4::scale(0.75);
-
-                // Rotation matrix
-                let rotation = Matrix4::rotation(
-                    Angle::Degrees(pitch),
-                    Angle::Degrees(yaw),
-                    Angle::Degrees(roll),
-                );
-
-                // Translation matrix
-                let position = Vector3::new(0.5, 0.0, 0.75);
-                let translation = Matrix4::translation(position);
-
-                // Perspective matrix
-                let fov = Angle::Degrees(90.0);
-                let z_far = 1000.0;
-                let z_near= 0.1;
-                let aspect = (WIDTH as f32) / (HEIGHT as f32);
-                let perspective = Matrix4::perspective(fov, z_far, z_near, aspect);
-                
-                // Transform points using matrices
-                let a = perspective * translation * rotation * scale * a;
-                let b = perspective * translation * rotation * scale * b;
-                let c = perspective * translation * rotation * scale * c;
-
-                // Convert back to cartesian coordinates
-                let a = a.cartesian();
-                let b = b.cartesian();
-                let c = c.cartesian();
-
-                // Convert points to screen coordinates
-                let a = to_screen_coordinates(a);
-                let b = to_screen_coordinates(b);
-                let c = to_screen_coordinates(c);
-
-                let t = Triangle {a, b, c};
 
                 // Check whether pixel is close to
                 if check_inside(&t, &p) {
@@ -125,9 +142,7 @@ fn main() {
         grid.clear(' ');
 
         // roll += 0.5;
-        yaw += 5.0;
-        pitch += 5.0;
-
+        yaw += 0.1;
+        pitch += 0.1;
     }
 }
-
