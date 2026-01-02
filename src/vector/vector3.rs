@@ -165,7 +165,6 @@ impl Neg for Vector3 {
     }
 }
 
-
 // Allows us to index instead of using members
 impl Index<usize> for Vector3 {
     type Output = f32;
@@ -181,7 +180,8 @@ impl Index<usize> for Vector3 {
 }
 
 // For approximate equals
-impl AbsDiffEq for Vector3 where
+impl AbsDiffEq for Vector3
+where
     <f32 as AbsDiffEq>::Epsilon: Copy,
 {
     type Epsilon = <f32 as AbsDiffEq>::Epsilon;
@@ -191,11 +191,11 @@ impl AbsDiffEq for Vector3 where
     }
 
     fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
-        Self::Epsilon::abs_diff_eq(&self.x, &other.x, epsilon) &&
-        Self::Epsilon::abs_diff_eq(&self.y, &other.y, epsilon) &&
-        Self::Epsilon::abs_diff_eq(&self.z, &other.z, epsilon)
+        Self::Epsilon::abs_diff_eq(&self.x, &other.x, epsilon)
+            && Self::Epsilon::abs_diff_eq(&self.y, &other.y, epsilon)
+            && Self::Epsilon::abs_diff_eq(&self.z, &other.z, epsilon)
     }
-    
+
     fn abs_diff_ne(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
         !Self::abs_diff_eq(self, other, epsilon)
     }
@@ -219,8 +219,22 @@ mod tests {
     #[test]
     fn scalar_division_test() {
         let vec: Vector3 = Vector3::new(10., 20., 12.);
-        assert_eq!(2. / vec, Vector3 { x: 1./5., y: 1./10., z: 1./6. });
-        assert_eq!(vec / 2., Vector3 { x: 5., y: 10., z: 6. });
+        assert_eq!(
+            2. / vec,
+            Vector3 {
+                x: 1. / 5.,
+                y: 1. / 10.,
+                z: 1. / 6.
+            }
+        );
+        assert_eq!(
+            vec / 2.,
+            Vector3 {
+                x: 5.,
+                y: 10.,
+                z: 6.
+            }
+        );
     }
 
     #[test]
@@ -239,7 +253,6 @@ mod tests {
         assert_eq!(vec - 2., res);
     }
 
-
     #[test]
     fn vector_addition_test() {
         let a: Vector3 = Vector3::new(10., 39., 29.);
@@ -257,7 +270,7 @@ mod tests {
         assert_eq!(a - b, res);
         assert_eq!(b - a, -res);
     }
-    
+
     #[test]
     fn dot_product_test() {
         let a = Vector3::new(1, 2, 3);
@@ -309,5 +322,4 @@ mod tests {
 
         assert_abs_diff_eq!(a.normalize(), b);
     }
-
 }

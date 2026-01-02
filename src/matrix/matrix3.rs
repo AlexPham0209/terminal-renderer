@@ -2,7 +2,15 @@ use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 
 use approx::{AbsDiffEq, abs_diff_eq};
 
-use crate::{matrix::{matrix::Matrix, matrix4::Matrix4, rotation::{Angle, Rotation}, scale::Scale}, vector::vector3::Vector3};
+use crate::{
+    matrix::{
+        matrix::Matrix,
+        matrix4::Matrix4,
+        rotation::{Angle, Rotation},
+        scale::Scale,
+    },
+    vector::vector3::Vector3,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix3 {
@@ -42,17 +50,12 @@ impl Matrix3 {
     }
 
     pub fn to_cartesian(mat: Matrix4) -> Matrix3 {
-        Matrix3::from_cols(
-            mat.x.xyz(),
-            mat.y.xyz(),
-            mat.z.xyz()
-        )
+        Matrix3::from_cols(mat.x.xyz(), mat.y.xyz(), mat.z.xyz())
     }
 
     pub fn homogenous(&self) -> Matrix4 {
         Matrix4::to_homogenous(*self)
     }
-    
 }
 
 impl Matrix for Matrix3 {
@@ -79,7 +82,7 @@ impl Matrix for Matrix3 {
     fn transpose(&self) -> Matrix3 {
         Matrix3::from_rows(self.x, self.y, self.z)
     }
-    
+
     fn identity() -> Self {
         let x = Vector3::new(1, 0, 0);
         let y = Vector3::new(0, 1, 0);
@@ -101,56 +104,41 @@ impl Rotation for Matrix3 {
     fn x_rotation(angle: Angle) -> Matrix3 {
         let angle: f32 = match angle {
             Angle::Degrees(degrees) => degrees.to_radians(),
-            Angle::Radians(radians) => radians
+            Angle::Radians(radians) => radians,
         };
 
         let cos: f32 = f32::cos(angle);
         let sin: f32 = f32::sin(angle);
 
-        Matrix3::new(
-            1.0, 0.0, 0.0, 
-            0.0, cos, -sin, 
-            0.0, sin, cos
-        )
+        Matrix3::new(1.0, 0.0, 0.0, 0.0, cos, -sin, 0.0, sin, cos)
     }
-
 
     fn y_rotation(angle: Angle) -> Matrix3 {
         let angle: f32 = match angle {
             Angle::Degrees(degrees) => degrees.to_radians(),
-            Angle::Radians(radians) => radians
+            Angle::Radians(radians) => radians,
         };
 
         let cos: f32 = f32::cos(angle);
         let sin: f32 = f32::sin(angle);
 
-        Matrix3::new(
-            cos, 0.0, sin,
-            0.0, 1.0, 0.0,
-            -sin, 0.0, cos
-        )
+        Matrix3::new(cos, 0.0, sin, 0.0, 1.0, 0.0, -sin, 0.0, cos)
     }
 
     fn z_rotation(angle: Angle) -> Matrix3 {
         let angle: f32 = match angle {
             Angle::Degrees(degrees) => degrees.to_radians(),
-            Angle::Radians(radians) => radians
+            Angle::Radians(radians) => radians,
         };
 
         let cos: f32 = f32::cos(angle);
         let sin: f32 = f32::sin(angle);
 
-        Matrix3::new(
-            cos, -sin, 0.0,
-            sin, cos, 0.0,
-            0.0, 0.0, 1.0
-        )
+        Matrix3::new(cos, -sin, 0.0, sin, cos, 0.0, 0.0, 0.0, 1.0)
     }
 
     fn rotation(yaw: Angle, pitch: Angle, roll: Angle) -> Matrix3 {
-        Matrix3::z_rotation(roll) * 
-        Matrix3::y_rotation(pitch) * 
-        Matrix3::x_rotation(yaw) 
+        Matrix3::z_rotation(roll) * Matrix3::y_rotation(pitch) * Matrix3::x_rotation(yaw)
     }
 }
 
@@ -314,7 +302,8 @@ impl Index<usize> for Matrix3 {
 }
 
 // For approximate equals
-impl AbsDiffEq for Matrix3 where
+impl AbsDiffEq for Matrix3
+where
     <f32 as AbsDiffEq>::Epsilon: Copy,
 {
     type Epsilon = <f32 as AbsDiffEq>::Epsilon;
@@ -322,18 +311,17 @@ impl AbsDiffEq for Matrix3 where
     fn default_epsilon() -> Self::Epsilon {
         Self::Epsilon::default_epsilon()
     }
-    
+
     fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
-        abs_diff_eq!(&self.x, &other.x, epsilon=epsilon) &&
-        abs_diff_eq!(&self.y, &other.y, epsilon=epsilon) &&
-        abs_diff_eq!(&self.z, &other.z, epsilon=epsilon)
+        abs_diff_eq!(&self.x, &other.x, epsilon = epsilon)
+            && abs_diff_eq!(&self.y, &other.y, epsilon = epsilon)
+            && abs_diff_eq!(&self.z, &other.z, epsilon = epsilon)
     }
-    
+
     fn abs_diff_ne(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
         !Self::abs_diff_eq(self, other, epsilon)
     }
 }
-
 
 mod tests {
     use crate::matrix::matrix2::Matrix2;
@@ -433,74 +421,34 @@ mod tests {
 
     #[test]
     fn matrix_scalar_addition_test() {
-        let a = Matrix3::new(
-            1.0, 2.0, 3.0, 
-            2.1, 12.0, 29.0,
-            11.1, 3.0, 123.5,
-        );
-        let res = Matrix3::new(
-            3.0, 4.0, 5.0, 
-            4.1, 14.0, 31.0,
-            13.1, 5.0, 125.5,
-        );
+        let a = Matrix3::new(1.0, 2.0, 3.0, 2.1, 12.0, 29.0, 11.1, 3.0, 123.5);
+        let res = Matrix3::new(3.0, 4.0, 5.0, 4.1, 14.0, 31.0, 13.1, 5.0, 125.5);
         assert_eq!(a + 2., res);
         assert_eq!(2. + a, res);
     }
 
     #[test]
     fn matrix_scalar_subtraction_test() {
-        let a = Matrix3::new(
-            1.0, 2.0, 3.0, 
-            5.0, 12.0, 29.0,
-            11.1, 3.0, 123.5,
-        );
-        let res = Matrix3::new(
-            -1.0, 0.0, 1.0, 
-            3.0, 10.0, 27.0,
-            9.1, 1.0, 121.5,
-        );
+        let a = Matrix3::new(1.0, 2.0, 3.0, 5.0, 12.0, 29.0, 11.1, 3.0, 123.5);
+        let res = Matrix3::new(-1.0, 0.0, 1.0, 3.0, 10.0, 27.0, 9.1, 1.0, 121.5);
         assert_eq!(a - 2., res);
         assert_eq!(2. - a, -res);
     }
 
     #[test]
     fn matrix_addition_test() {
-        let a = Matrix3::new(
-            1.0, 2.0, 3.0, 
-            2.11, 12.0, 29.0,
-            11.1, 3.0, 123.5,
-        );
-        let b = Matrix3::new(
-            5.5, 1.1, 6.0, 
-            9.5, 111.0, 74.0,
-            81.1, 99.0, -2.0,
-        );
-        let res = Matrix3::new(
-            6.5, 3.1, 9.0, 
-            11.61, 123.0, 103.0,
-            92.2, 102.0, 121.5,
-        );
+        let a = Matrix3::new(1.0, 2.0, 3.0, 2.11, 12.0, 29.0, 11.1, 3.0, 123.5);
+        let b = Matrix3::new(5.5, 1.1, 6.0, 9.5, 111.0, 74.0, 81.1, 99.0, -2.0);
+        let res = Matrix3::new(6.5, 3.1, 9.0, 11.61, 123.0, 103.0, 92.2, 102.0, 121.5);
         assert_eq!(a + b, res);
         assert_eq!(b + a, res);
     }
 
     #[test]
     fn matrix_subtraction_test() {
-        let a = Matrix3::new(
-            1.0, 2.0, 3.0, 
-            2.1, 12.0, 29.0,
-            11.1, 3.0, 123.5,
-        );
-        let b = Matrix3::new(
-            5.5, 1.1, 6.0, 
-            9.5, 111.0, 74.0,
-            81.1, 99.0, -2.0,
-        );
-        let res = Matrix3::new(
-            -4.5, 0.9, -3.0, 
-            -7.4, -99.0, -45.0,
-            -70.0, -96.0, 125.5,
-        );
+        let a = Matrix3::new(1.0, 2.0, 3.0, 2.1, 12.0, 29.0, 11.1, 3.0, 123.5);
+        let b = Matrix3::new(5.5, 1.1, 6.0, 9.5, 111.0, 74.0, 81.1, 99.0, -2.0);
+        let res = Matrix3::new(-4.5, 0.9, -3.0, -7.4, -99.0, -45.0, -70.0, -96.0, 125.5);
         assert_eq!(a - b, res);
         assert_eq!(b - a, -res);
     }

@@ -2,7 +2,11 @@ use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 
 use approx::{AbsDiffEq, abs_diff_eq};
 
-use crate::{Vector2, matrix::{matrix::Matrix, scale::Scale}, vector::vector3::Vector3};
+use crate::{
+    Vector2,
+    matrix::{matrix::Matrix, scale::Scale},
+    vector::vector3::Vector3,
+};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix2 {
@@ -51,15 +55,13 @@ impl Matrix for Matrix2 {
     fn transpose(&self) -> Matrix2 {
         Matrix2::from_rows(self.x, self.y)
     }
-    
+
     fn identity() -> Self {
         let x = Vector2::new(1, 0);
         let y = Vector2::new(0, 1);
         Matrix2::from_cols(x, y)
     }
-
 }
-
 
 // Scalar matrix
 impl Scale for Matrix2 {
@@ -217,7 +219,8 @@ impl Index<usize> for Matrix2 {
 }
 
 // For approximate equals
-impl AbsDiffEq for Matrix2 where
+impl AbsDiffEq for Matrix2
+where
     <f32 as AbsDiffEq>::Epsilon: Copy,
 {
     type Epsilon = <f32 as AbsDiffEq>::Epsilon;
@@ -227,15 +230,14 @@ impl AbsDiffEq for Matrix2 where
     }
 
     fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
-        abs_diff_eq!(&self.x, &other.x, epsilon=epsilon) &&
-        abs_diff_eq!(&self.y, &other.y, epsilon=epsilon)
+        abs_diff_eq!(&self.x, &other.x, epsilon = epsilon)
+            && abs_diff_eq!(&self.y, &other.y, epsilon = epsilon)
     }
-    
+
     fn abs_diff_ne(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
         !Self::abs_diff_eq(self, other, epsilon)
     }
 }
-
 
 mod tests {
     use super::*;
@@ -312,7 +314,7 @@ mod tests {
     #[test]
     fn matrix_addition_test() {
         let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
-        let b =  Matrix2::new(1.5, 12.0, 5.0, -2.0);
+        let b = Matrix2::new(1.5, 12.0, 5.0, -2.0);
         let res: Matrix2 = Matrix2::new(2.5, 14.0, 8.0, 0.0);
         assert_eq!(a + b, res);
         assert_eq!(b + a, res);
@@ -321,7 +323,7 @@ mod tests {
     #[test]
     fn matrix_subtraction_test() {
         let a = Matrix2::new(1.0, 2.0, 3.0, 2.0);
-        let b =  Matrix2::new(1.5, 12.0, 5.0, -2.0);
+        let b = Matrix2::new(1.5, 12.0, 5.0, -2.0);
         let res: Matrix2 = Matrix2::new(-0.5, -10.0, -2.0, 4.0);
         assert_eq!(a - b, res);
         assert_eq!(b - a, -res);

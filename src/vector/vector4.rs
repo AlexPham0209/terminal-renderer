@@ -39,7 +39,7 @@ impl Vector4 {
     pub fn xyz(&self) -> Vector3 {
         Vector3::to_vector3(*self)
     }
-    
+
     pub fn to_vector4(v: Vector3, w: f32) -> Vector4 {
         let Vector3 { x, y, z } = v;
         Vector4::new(x, y, z, w)
@@ -120,7 +120,12 @@ impl Sub<f32> for Vector4 {
     type Output = Vector4;
 
     fn sub(self, scalar: f32) -> Vector4 {
-        Vector4::new(self.x - scalar, self.y - scalar, self.z - scalar, self.w - scalar)
+        Vector4::new(
+            self.x - scalar,
+            self.y - scalar,
+            self.z - scalar,
+            self.w - scalar,
+        )
     }
 }
 
@@ -174,7 +179,12 @@ impl MulAssign<f32> for Vector4 {
 impl Div<f32> for Vector4 {
     type Output = Vector4;
     fn div(self, scalar: f32) -> Vector4 {
-        Vector4::new(self.x / scalar, self.y / scalar, self.z / scalar, self.w / scalar)
+        Vector4::new(
+            self.x / scalar,
+            self.y / scalar,
+            self.z / scalar,
+            self.w / scalar,
+        )
     }
 }
 
@@ -209,7 +219,8 @@ impl Index<usize> for Vector4 {
 }
 
 // For approximate equals
-impl AbsDiffEq for Vector4 where
+impl AbsDiffEq for Vector4
+where
     <f32 as AbsDiffEq>::Epsilon: Copy,
 {
     type Epsilon = <f32 as AbsDiffEq>::Epsilon;
@@ -219,17 +230,16 @@ impl AbsDiffEq for Vector4 where
     }
 
     fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
-        Self::Epsilon::abs_diff_eq(&self.x, &other.x, epsilon) &&
-        Self::Epsilon::abs_diff_eq(&self.y, &other.y, epsilon) &&
-        Self::Epsilon::abs_diff_eq(&self.z, &other.z, epsilon) &&
-        Self::Epsilon::abs_diff_eq(&self.w, &other.w, epsilon)
+        Self::Epsilon::abs_diff_eq(&self.x, &other.x, epsilon)
+            && Self::Epsilon::abs_diff_eq(&self.y, &other.y, epsilon)
+            && Self::Epsilon::abs_diff_eq(&self.z, &other.z, epsilon)
+            && Self::Epsilon::abs_diff_eq(&self.w, &other.w, epsilon)
     }
-    
+
     fn abs_diff_ne(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
         !Self::abs_diff_eq(self, other, epsilon)
     }
 }
-
 
 mod tests {
     use approx::assert_abs_diff_eq;
@@ -248,8 +258,24 @@ mod tests {
     #[test]
     fn scalar_division_test() {
         let vec: Vector4 = Vector4::new(10., 20., 12., 44.);
-        assert_abs_diff_eq!(2. / vec, Vector4 { x: 1./5., y: 1./10., z: 1./6., w: 1./22.});
-        assert_abs_diff_eq!(vec / 2., Vector4 { x: 5., y: 10., z: 6., w: 22. });
+        assert_abs_diff_eq!(
+            2. / vec,
+            Vector4 {
+                x: 1. / 5.,
+                y: 1. / 10.,
+                z: 1. / 6.,
+                w: 1. / 22.
+            }
+        );
+        assert_abs_diff_eq!(
+            vec / 2.,
+            Vector4 {
+                x: 5.,
+                y: 10.,
+                z: 6.,
+                w: 22.
+            }
+        );
     }
 
     #[test]
@@ -268,7 +294,6 @@ mod tests {
         assert_abs_diff_eq!(vec - 2., res);
     }
 
-
     #[test]
     fn vector_addition_test() {
         let a: Vector4 = Vector4::new(10., 39., 29., 55.);
@@ -286,7 +311,7 @@ mod tests {
         assert_abs_diff_eq!(a - b, res);
         assert_abs_diff_eq!(b - a, -res);
     }
-    
+
     #[test]
     fn dot_product_test() {
         let a = Vector4::new(1, 2, 3, 6);
@@ -330,5 +355,4 @@ mod tests {
 
         assert_abs_diff_eq!(a.normalize(), b);
     }
-
 }

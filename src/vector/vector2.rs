@@ -156,7 +156,8 @@ impl Index<usize> for Vector2 {
 }
 
 // For approximate equals
-impl AbsDiffEq for Vector2 where
+impl AbsDiffEq for Vector2
+where
     <f32 as AbsDiffEq>::Epsilon: Copy,
 {
     type Epsilon = <f32 as AbsDiffEq>::Epsilon;
@@ -166,10 +167,10 @@ impl AbsDiffEq for Vector2 where
     }
 
     fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
-        Self::Epsilon::abs_diff_eq(&self.x, &other.x, epsilon) &&
-        Self::Epsilon::abs_diff_eq(&self.y, &other.y, epsilon)
+        Self::Epsilon::abs_diff_eq(&self.x, &other.x, epsilon)
+            && Self::Epsilon::abs_diff_eq(&self.y, &other.y, epsilon)
     }
-    
+
     fn abs_diff_ne(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
         !Self::abs_diff_eq(self, other, epsilon)
     }
@@ -191,7 +192,13 @@ mod tests {
     #[test]
     fn scalar_division_test() {
         let vec: Vector2 = Vector2::new(10., 20.);
-        assert_eq!(2. / vec, Vector2 { x: 1./5., y: 1./10. });
+        assert_eq!(
+            2. / vec,
+            Vector2 {
+                x: 1. / 5.,
+                y: 1. / 10.
+            }
+        );
         assert_eq!(vec / 2., Vector2 { x: 5., y: 10. });
     }
 
@@ -236,7 +243,7 @@ mod tests {
         assert_eq!(a.dot(b), 44.);
         println!("{:?}", b);
     }
-    
+
     #[test]
     fn hadamard_product_test() {
         let a: Vector2 = Vector2::new(10, 2.);
@@ -253,17 +260,16 @@ mod tests {
         assert_eq!(-vec, res);
     }
 
-
     #[test]
     fn magnitude_test() {
         let a: Vector2 = Vector2 { x: 3., y: 4. };
         assert_abs_diff_eq!(a.length(), 5.);
     }
 
-        #[test]
+    #[test]
     fn normalize_test() {
         let a: Vector2 = Vector2::new(3, 4);
-        let b: Vector2 = Vector2::new(3./5., 4./5.);
+        let b: Vector2 = Vector2::new(3. / 5., 4. / 5.);
         assert_abs_diff_eq!(a.normalize(), b);
     }
 

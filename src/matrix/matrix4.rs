@@ -2,7 +2,15 @@ use std::ops::{Add, Div, Index, Mul, Sub};
 
 use approx::{AbsDiffEq, abs_diff_eq};
 
-use crate::{matrix::{matrix::Matrix, matrix3::Matrix3, rotation::{Angle, Rotation}, scale::Scale}, vector::{vector3::Vector3, vector4::Vector4}};
+use crate::{
+    matrix::{
+        matrix::Matrix,
+        matrix3::Matrix3,
+        rotation::{Angle, Rotation},
+        scale::Scale,
+    },
+    vector::{vector3::Vector3, vector4::Vector4},
+};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Matrix4 {
@@ -89,7 +97,7 @@ impl Matrix for Matrix4 {
     fn transpose(&self) -> Matrix4 {
         Matrix4::from_rows(self.x, self.y, self.z, self.w)
     }
-    
+
     fn identity() -> Self {
         let x = Vector4::new(1, 0, 0, 0);
         let y = Vector4::new(0, 1, 0, 0);
@@ -115,15 +123,15 @@ impl Matrix4 {
     pub fn perspective(fov: Angle, z_far: f32, z_near: f32, aspect: f32) -> Matrix4 {
         let fov: f32 = match fov {
             Angle::Degrees(degrees) => degrees.to_radians(),
-            Angle::Radians(radians) => radians
+            Angle::Radians(radians) => radians,
         };
 
         let tan = f32::tan(fov / 2.0);
-        
+
         let x = Vector4::new(1.0 / (aspect * tan), 0, 0, 0);
         let y = Vector4::new(0, 1.0 / tan, 0, 0);
-        let z = Vector4::new(0, 0, -((z_far + z_near)/(z_far - z_near)), -1);
-        let w = Vector4::new(0, 0, 0, -((2.0 * z_far * z_near)/(z_far - z_near)));
+        let z = Vector4::new(0, 0, -((z_far + z_near) / (z_far - z_near)), -1);
+        let w = Vector4::new(0, 0, 0, -((2.0 * z_far * z_near) / (z_far - z_near)));
 
         // Z coordinate is scaled so that z values between z_near and z_far are normalized to (0, 1) range.
         // If value has a z_value greater than 1 or less than 0, then it is outside the view frustrum and we don't render.
@@ -133,11 +141,10 @@ impl Matrix4 {
     pub fn orthographic(t: f32, b: f32, r: f32, l: f32, f: f32, n: f32) -> Matrix4 {
         let x = Vector4::new(2.0 / (r - l), 0, 0, 0);
         let y = Vector4::new(0, 2.0 / (t - b), 0, 0);
-        let z = Vector4::new(0, 0, -2.0 / (f - n),0);
-        let w = Vector4::new((l + r) / 2.0, (t + b) / 2.0, - (f + n) / 2.0, 1);
+        let z = Vector4::new(0, 0, -2.0 / (f - n), 0);
+        let w = Vector4::new((l + r) / 2.0, (t + b) / 2.0, -(f + n) / 2.0, 1);
         Matrix4::from_cols(x, y, z, w)
     }
-    
 }
 
 impl Scale for Matrix4 {
@@ -154,7 +161,6 @@ impl Rotation for Matrix4 {
     fn x_rotation(angle: Angle) -> Matrix4 {
         Matrix4::to_homogenous(Matrix3::x_rotation(angle))
     }
-
 
     fn y_rotation(angle: Angle) -> Matrix4 {
         Matrix4::to_homogenous(Matrix3::y_rotation(angle))
@@ -342,7 +348,8 @@ impl Index<usize> for Matrix4 {
 }
 
 // For approximate equals
-impl AbsDiffEq for Matrix4 where
+impl AbsDiffEq for Matrix4
+where
     <f32 as AbsDiffEq>::Epsilon: Copy,
 {
     type Epsilon = <f32 as AbsDiffEq>::Epsilon;
@@ -350,22 +357,21 @@ impl AbsDiffEq for Matrix4 where
     fn default_epsilon() -> Self::Epsilon {
         Self::Epsilon::default_epsilon()
     }
-    
+
     fn abs_diff_eq(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
         // println!("{}", abs_diff_eq!(&self.x, &other.x, epsilon=epsilon));
         // println!("{}", abs_diff_eq!(&self.y, &other.y, epsilon=epsilon));
         // println!("{}", abs_diff_eq!(&self.z, &other.z, epsilon=epsilon));
-        abs_diff_eq!(&self.x, &other.x, epsilon=epsilon) &&
-        abs_diff_eq!(&self.y, &other.y, epsilon=epsilon) &&
-        abs_diff_eq!(&self.z, &other.z, epsilon=epsilon) &&
-        abs_diff_eq!(&self.w, &other.w, epsilon=epsilon)
+        abs_diff_eq!(&self.x, &other.x, epsilon = epsilon)
+            && abs_diff_eq!(&self.y, &other.y, epsilon = epsilon)
+            && abs_diff_eq!(&self.z, &other.z, epsilon = epsilon)
+            && abs_diff_eq!(&self.w, &other.w, epsilon = epsilon)
     }
-    
+
     fn abs_diff_ne(&self, other: &Self, epsilon: Self::Epsilon) -> bool {
         !Self::abs_diff_eq(self, other, epsilon)
     }
 }
-
 
 mod tests {
     use core::f32;
@@ -413,17 +419,10 @@ mod tests {
 
     #[test]
     fn from_matrix3_test() {
-        let a = Matrix3::new(
-            1.0, 2.0, 3.0,
-            4.0, 5.0, 6.0,
-            7.0, 8.0, 9.0
-        );
+        let a = Matrix3::new(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0);
 
         let res = Matrix4::new(
-            1.0, 2.0, 3.0, 0.0,
-            4.0, 5.0, 6.0, 0.0, 
-            7.0, 8.0, 9.0, 0.0, 
-            0.0, 0.0, 0.0, 1.0
+            1.0, 2.0, 3.0, 0.0, 4.0, 5.0, 6.0, 0.0, 7.0, 8.0, 9.0, 0.0, 0.0, 0.0, 0.0, 1.0,
         );
 
         assert_eq!(Matrix4::to_homogenous(a), res)
@@ -433,64 +432,43 @@ mod tests {
     fn translation_matrix_test() {
         let t: Vector3 = Vector3::new(1, 3, 5);
         let res: Matrix4 = Matrix4::new(
-            1.0, 0.0, 0.0, 1.0,
-            0.0, 1.0, 0.0, 3.0,
-            0.0, 0.0, 1.0, 5.0,
-            0.0, 0.0, 0.0, 1.0, 
+            1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 3.0, 0.0, 0.0, 1.0, 5.0, 0.0, 0.0, 0.0, 1.0,
         );
         assert_abs_diff_eq!(Matrix4::translation(t), res)
     }
-    
+
     #[test]
     fn matrix_vector_multiplication_test() {
         let a = Matrix4::new(
-            1.0, 2.0, 3.0, 9.1,
-            2.1, 12.0, 29.0, 55.0,
-            11.1, 3.0, 123.5, 12.0,
-            43.1, 31.1, 5.1, 1.0,
+            1.0, 2.0, 3.0, 9.1, 2.1, 12.0, 29.0, 55.0, 11.1, 3.0, 123.5, 12.0, 43.1, 31.1, 5.1, 1.0,
         );
         let b = Vector4::new(2, 3, 4, 5);
         let res = Vector4::new(65.5, 431.2, 585.2, 204.9);
         assert_eq!(a * b, res);
     }
 
-
     #[test]
     fn matrix_multiplication_test() {
         let a = Matrix4::new(
-            1.0, 2.0, 3.0, 9.1,
-            2.1, 12.0, 29.0, 55.0,
-            11.1, 3.0, 123.5, 12.0,
-            43.1, 31.1, 5.1, 1.0,
+            1.0, 2.0, 3.0, 9.1, 2.1, 12.0, 29.0, 55.0, 11.1, 3.0, 123.5, 12.0, 43.1, 31.1, 5.1, 1.0,
         );
         let b = Matrix4::new(
-            5.0, 29.0, 7.0, 6.3,
-            4.4, 39.0, 55.0, 125.0,
-            9.7, 3.0, 5.2, 12.0,
-            43.1, 31.1, 7.1, 1.0,
+            5.0, 29.0, 7.0, 6.3, 4.4, 39.0, 55.0, 125.0, 9.7, 3.0, 5.2, 12.0, 43.1, 31.1, 7.1, 1.0,
         );
         let res = Matrix4::new(
-            435.11, 399.01, 197.21, 301.4,
-            2715.1, 2326.4, 1216.0, 1916.23,
-            1783.85, 1182.6, 970.1, 1938.93,
-            444.91, 2509.2, 2045.82, 4221.23,
+            435.11, 399.01, 197.21, 301.4, 2715.1, 2326.4, 1216.0, 1916.23, 1783.85, 1182.6, 970.1,
+            1938.93, 444.91, 2509.2, 2045.82, 4221.23,
         );
         assert_abs_diff_eq!(a * b, res, epsilon = 1e-3);
-    }   
+    }
 
     #[test]
     fn matrix_scalar_multiplication_test() {
         let a = Matrix4::new(
-            1.0, 2.0, 3.0, 9.1,
-            2.1, 12.0, 29.0, 55.0,
-            11.1, 3.0, 123.5, 12.0,
-            43.1, 31.1, 5.1, 1.0,
+            1.0, 2.0, 3.0, 9.1, 2.1, 12.0, 29.0, 55.0, 11.1, 3.0, 123.5, 12.0, 43.1, 31.1, 5.1, 1.0,
         );
         let res = Matrix4::new(
-            2.0, 2.0, 3.0, 9.1,
-            4.2, 12.0, 29.0, 55.0,
-            22.2, 3.0, 123.5, 12.0,
-            43.1, 31.1, 5.1, 1.0,
+            2.0, 2.0, 3.0, 9.1, 4.2, 12.0, 29.0, 55.0, 22.2, 3.0, 123.5, 12.0, 43.1, 31.1, 5.1, 1.0,
         );
         assert_abs_diff_eq!(a * 2., res);
         assert_abs_diff_eq!(2. * a, res);
@@ -508,12 +486,12 @@ mod tests {
     // #[test]
     // fn matrix_scalar_addition_test() {
     //     let a = Matrix3::new(
-    //         1.0, 2.0, 3.0, 
+    //         1.0, 2.0, 3.0,
     //         2.1, 12.0, 29.0,
     //         11.1, 3.0, 123.5,
     //     );
     //     let res = Matrix3::new(
-    //         3.0, 4.0, 5.0, 
+    //         3.0, 4.0, 5.0,
     //         4.1, 14.0, 31.0,
     //         13.1, 5.0, 125.5,
     //     );
@@ -524,12 +502,12 @@ mod tests {
     // #[test]
     // fn matrix_scalar_subtraction_test() {
     //     let a = Matrix3::new(
-    //         1.0, 2.0, 3.0, 
+    //         1.0, 2.0, 3.0,
     //         5.0, 12.0, 29.0,
     //         11.1, 3.0, 123.5,
     //     );
     //     let res = Matrix3::new(
-    //         -1.0, 0.0, 1.0, 
+    //         -1.0, 0.0, 1.0,
     //         3.0, 10.0, 27.0,
     //         9.1, 1.0, 121.5,
     //     );
@@ -540,17 +518,17 @@ mod tests {
     // #[test]
     // fn matrix_addition_test() {
     //     let a = Matrix3::new(
-    //         1.0, 2.0, 3.0, 
+    //         1.0, 2.0, 3.0,
     //         2.11, 12.0, 29.0,
     //         11.1, 3.0, 123.5,
     //     );
     //     let b = Matrix3::new(
-    //         5.5, 1.1, 6.0, 
+    //         5.5, 1.1, 6.0,
     //         9.5, 111.0, 74.0,
     //         81.1, 99.0, -2.0,
     //     );
     //     let res = Matrix3::new(
-    //         6.5, 3.1, 9.0, 
+    //         6.5, 3.1, 9.0,
     //         11.61, 123.0, 103.0,
     //         92.2, 102.0, 121.5,
     //     );
@@ -561,17 +539,17 @@ mod tests {
     // #[test]
     // fn matrix_subtraction_test() {
     //     let a = Matrix3::new(
-    //         1.0, 2.0, 3.0, 
+    //         1.0, 2.0, 3.0,
     //         2.1, 12.0, 29.0,
     //         11.1, 3.0, 123.5,
     //     );
     //     let b = Matrix3::new(
-    //         5.5, 1.1, 6.0, 
+    //         5.5, 1.1, 6.0,
     //         9.5, 111.0, 74.0,
     //         81.1, 99.0, -2.0,
     //     );
     //     let res = Matrix3::new(
-    //         -4.5, 0.9, -3.0, 
+    //         -4.5, 0.9, -3.0,
     //         -7.4, -99.0, -45.0,
     //         -70.0, -96.0, 125.5,
     //     );
