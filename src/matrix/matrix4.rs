@@ -108,6 +108,10 @@ impl Matrix4 {
         Matrix4::from_cols(x, y, z, w)
     }
 
+    pub fn view(yaw: Angle, pitch: Angle, roll: Angle, t: Vector3) -> Matrix4 {
+        Matrix4::rotation(yaw, pitch, roll).transpose() * Matrix4::translation(-t)
+    }
+
     pub fn perspective(fov: Angle, z_far: f32, z_near: f32, aspect: f32) -> Matrix4 {
         let fov: f32 = match fov {
             Angle::Degrees(degrees) => degrees.to_radians(),
@@ -120,6 +124,9 @@ impl Matrix4 {
         let y = Vector4::new(0, 1.0 / tan, 0, 0);
         let z = Vector4::new(0, 0, -((z_far + z_near)/(z_far - z_near)), -1);
         let w = Vector4::new(0, 0, 0, -((2.0 * z_far * z_near)/(z_far - z_near)));
+
+        // Z coordinate is scaled so that z values between z_near and z_far are normalized to (0, 1) range.
+        // If value has a z_value greater than 1 or less than 0, then it is outside the view frustrum and we don't render.
         Matrix4::from_cols(x, y, z, w)
     }
 
@@ -130,6 +137,7 @@ impl Matrix4 {
         let w = Vector4::new((l + r) / 2.0, (t + b) / 2.0, - (f + n) / 2.0, 1);
         Matrix4::from_cols(x, y, z, w)
     }
+    
 }
 
 impl Scale for Matrix4 {
