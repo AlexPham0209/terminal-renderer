@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Index, Mul, Sub};
+use std::ops::{Add, Div, Index, Mul, Neg, Sub};
 
 use approx::{AbsDiffEq, abs_diff_eq};
 
@@ -330,6 +330,15 @@ impl Sub<Matrix4> for Matrix4 {
         let z = self.z - other.z;
         let w = self.w - other.w;
         Matrix4::from_cols(x, y, z, w)
+    }
+}
+
+// Matrix negation
+impl Neg for Matrix4 {
+    type Output = Matrix4;
+
+    fn neg(self) -> Matrix4 {
+        Matrix4::from_cols(-self.x, -self.y, -self.z, -self.w)
     }
 }
 

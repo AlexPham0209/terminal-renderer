@@ -9,10 +9,7 @@ pub use crate::vector::vector2::Vector2;
 pub use crate::vector::vector4::Vector4;
 use crate::{
     matrix::{
-        matrix3::Matrix3,
-        matrix4::Matrix4,
-        rotation::{Angle, Rotation},
-        scale::Scale,
+        matrix::Matrix, matrix3::Matrix3, matrix4::Matrix4, rotation::{Angle, Rotation}, scale::Scale
     },
     vector::{vector::Vector, vector3::Vector3},
 };
@@ -321,7 +318,7 @@ fn main() {
             } = *transform;
 
             // Scaling matrix
-            let scale = Matrix4::scale(scale);
+            let scalar = Matrix4::scale(scale);
 
             // Rotation matrix
             let rotation = Matrix4::rotation(
@@ -333,26 +330,30 @@ fn main() {
             // Translation matrix
             let translation = Matrix4::translation(position);
 
-            // Calculating normal vector
-            let world_a = translation * rotation * scale * a;
-            let world_b = translation * rotation * scale * b;
-            let world_c = translation * rotation * scale * c;
-
-            let ab = world_b - world_a;
-            let ac = world_c - world_a;
+            // Calculating normal vector (in object space)
+            let ab = b - a;
+            let ac = c - a;
             let normal = ab.cross(ac).normalize();
 
+            //Calculating normal matrix
+            let model_inverse = Matrix4::scale(1.0/scale) * rotation.transpose() * Matrix4::translation(-position);
+            let normal_matrix = model_inverse.transpose();
+                
+            // Converting normal to world space
+            let normal = (normal_matrix * Vector4::to_vector4(normal, 0.0)).xyz().normalize();
+            
             // Calculate light value
             let l = (light - normal).normalize();
-            let value = (normal.dot(l) + 1.0) / 2.0;
-            let value = (value * 3.0) as usize;
+            let value = f32::max(0.0, normal.dot(l));
+            println!("{value}");
+            let value = f32::round(value * 3.0) as usize;
 
             let character: char = "./$#".as_bytes()[value] as char;
 
             // Transform points using matrices
-            let a = perspective * view * world_a;
-            let b = perspective * view * world_b;
-            let c = perspective * view * world_c;
+            let a = perspective * view * translation * rotation * scalar * a;
+            let b = perspective * view * translation * rotation * scalar * b;
+            let c = perspective * view * translation * rotation * scalar * c;
 
             // Convert points to screen coordinates
             let a = to_screen_coordinates(a);
