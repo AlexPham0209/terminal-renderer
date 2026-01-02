@@ -116,7 +116,11 @@ fn rasterize_triangle(t: Triangle, grid: &mut Grid<char>, depth_buffer: &mut Gri
             let abp = edge_function(a, b, p);
             let bcp = edge_function(b, c, p);
             let cap = edge_function(c, a, p);
-            let is_inside = ((abp >= 0.0) == (bcp >= 0.0) && (bcp >= 0.0) == (cap >= 0.0));
+            let is_inside = (abp >= 0.0) == (bcp >= 0.0) && (bcp >= 0.0) == (cap >= 0.0);
+
+            if !is_inside {
+                continue;
+            }
 
             let depths = 1.0 / Vector3::new(
                 a.z, b.z, c.z
@@ -127,18 +131,14 @@ fn rasterize_triangle(t: Triangle, grid: &mut Grid<char>, depth_buffer: &mut Gri
                 abp / abc, bcp / abc, cap / abc
             );
             
-            // Calculates the depth
+            // Calculates the depth and uses it to determine whether current pixel is has lowest depth
             let depth = 1.0 / depths.dot(weights);
             if let Some(prev) = depth_buffer.get(x, y) && depth >= *prev {
                 continue;
             }
 
             depth_buffer.set(depth, x, y);
-            
-            // Check whether pixel is inside of triangle
-            if is_inside {
-                grid.set(value, x as usize, y as usize);
-            }
+            grid.set(value, x as usize, y as usize);
         }
     }
 }   
@@ -202,7 +202,7 @@ fn main() {
         dy: 1.0,
         dz: 3.0,
 
-        position: Vector3::new(-0.8, 0.25, -0.5),
+        position: Vector3::new(0, 1.0, 0),
         scale: 0.5,
         value: '/'
     };
@@ -213,6 +213,16 @@ fn main() {
     let mut camera_pitch = 0.0;
     let mut camera_yaw = 0.0;
     let mut camera_roll = 0.0;
+    
+    // In world coordinates
+    let light = Vector3::new(0.0, 2.0, 0.0);
+
+    // Perspective matrix
+    let fov = Angle::Degrees(90.0);
+    let z_far = 10000.0;
+    let z_near = 0.1;
+    let aspect = (WIDTH as f32) / (HEIGHT as f32);
+    let perspective = Matrix4::perspective(fov, z_far, z_near, aspect);
 
     loop {
         // Use column vectors of rotation matrix for forward and right vectors
@@ -296,13 +306,6 @@ fn main() {
             camera_position,
         );
 
-        // Perspective matrix
-        let fov = Angle::Degrees(90.0);
-        let z_far = 10000.0;
-        let z_near = 0.1;
-        let aspect = (WIDTH as f32) / (HEIGHT as f32);
-        let perspective = Matrix4::perspective(fov, z_far, z_near, aspect);
-
         for (tri, transform) in &mut triangles {
             let Triangle { a, b, c } = *tri;
             let Transform {
@@ -330,10 +333,26 @@ fn main() {
             // Translation matrix
             let translation = Matrix4::translation(position);
 
+            // Calculating normal vector
+            let world_a = translation * rotation * scale * a;
+            let world_b = translation * rotation * scale * b;
+            let world_c = translation * rotation * scale * c;
+
+            let ab = world_b - world_a;
+            let ac = world_c - world_a;
+            let normal = ab.cross(ac).normalize();
+
+            // Calculate light value
+            let l = (light - normal).normalize();
+            let value = (normal.dot(l) + 1.0) / 2.0;
+            let value = (value * 3.0) as usize;
+
+            let character: char = "./$#".as_bytes()[value] as char;
+
             // Transform points using matrices
-            let a = perspective * view * translation * rotation * scale * a;
-            let b = perspective * view * translation * rotation * scale * b;
-            let c = perspective * view * translation * rotation * scale * c;
+            let a = perspective * view * world_a;
+            let b = perspective * view * world_b;
+            let c = perspective * view * world_c;
 
             // Convert points to screen coordinates
             let a = to_screen_coordinates(a);
@@ -342,7 +361,7 @@ fn main() {
 
             // Final projected triangle
             let t = Triangle { a, b, c };
-            rasterize_triangle(t, &mut grid, &mut depth_buffer, value);
+            rasterize_triangle(t, &mut grid, &mut depth_buffer, character);
 
             transform.yaw += transform.dx;
             transform.pitch += transform.dy;
@@ -354,4 +373,5 @@ fn main() {
         grid.clear(' ');
         depth_buffer.clear(f32::INFINITY);
     }
+
 }

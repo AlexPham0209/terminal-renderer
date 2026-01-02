@@ -26,7 +26,7 @@ impl Vector3 {
         }
     }
 
-    fn cross(&self, other: Vector3) -> Vector3 {
+    pub fn cross(&self, other: Vector3) -> Vector3 {
         Vector3::new(
             self.y * other.z - self.z * other.y,
             self.z * other.x - self.x * other.z,
