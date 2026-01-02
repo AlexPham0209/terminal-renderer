@@ -97,12 +97,18 @@ fn to_screen_coordinates(vec: Vector3) -> Vector3 {
     )
 }
 
+fn get_normal(a: Vector3, b: Vector3, c: Vector3) -> Vector3 {
+    let ab = b - a;
+    let ac = c - a;
+    ab.cross(ac).normalize()
+}
+
 fn rasterize_triangle(
     t: Triangle,
     grid: &mut Grid<char>,
     depth_buffer: &mut Grid<f32>,
     normal: Vector3,
-    light: Vector3
+    light: Vector3,
 ) {
     let Triangle { a, b, c } = t;
 
@@ -134,12 +140,19 @@ fn rasterize_triangle(
             let depths = 1.0 / Vector3::new(a.z, b.z, c.z);
             let depth = 1.0 / depths.dot(weights);
 
+            // // Interpolated normals
+            // let n = ((normal_1 * depths.x) * weights.x)
+            //     + ((normal_2 * depths.y) * weights.y)
+            //     + ((normal_3 * depths.z) * weights.z);
+            // let n = n * depth;
+            // let n = n.normalize();
+
             // Calculating light value
             let l = (light - normal).normalize();
             let value = (normal.dot(l) + 1.0) / 2.0;
             let value = f32::round(value * ((gradient.len() - 1) as f32)) as usize;
             let value: char = gradient.as_bytes()[value] as char;
-            
+
             // Calculates the depth and uses it to determine whether current pixel is has lowest depth
             if let Some(prev) = depth_buffer.get(x, y)
                 && depth >= *prev
@@ -339,17 +352,15 @@ fn main() {
             // Translation matrix
             let translation = Matrix4::translation(position);
 
-            // Calculating normal vector (in object space)
-            let ab = b - a;
-            let ac = c - a;
-            let normal = ab.cross(ac).normalize();
+            // Calculating normal vectors for each vertex (in object space)
+            let normal_1 = get_normal(a, b, c);
 
             //Calculating world normal matrix
             let model_inverse = Matrix3::scale(1.0 / scale) * rotation.cartesian().transpose();
             let normal_matrix = model_inverse.transpose();
 
-            // Converting normal vector to world space
-            let normal = (normal_matrix * normal).normalize();
+            // Converting normal vectors to world space
+            let normal = (normal_matrix * normal_1).normalize();
 
             // Transform points using matrices
             let a = perspective * view * translation * rotation * scalar * a;
@@ -363,7 +374,13 @@ fn main() {
 
             // Final projected triangle
             let t = Triangle { a, b, c };
-            rasterize_triangle(t, &mut grid, &mut depth_buffer, normal, light);
+            rasterize_triangle(
+                t,
+                &mut grid,
+                &mut depth_buffer,
+                normal,
+                light,
+            );
 
             transform.yaw += transform.dx;
             transform.pitch += transform.dy;
