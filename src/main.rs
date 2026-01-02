@@ -146,7 +146,7 @@ fn main() {
     let mut camera_roll = 0.0;
 
     loop {
-        // Use column vectors of rotation vector to create forward and right vectors
+        // Use column vectors of rotation matrix for forward and right vectors
         let direction: Matrix3 = Matrix3::rotation(
             Angle::Degrees(camera_yaw),
             Angle::Degrees(camera_pitch),
@@ -163,28 +163,28 @@ fn main() {
                     modifiers: KeyModifiers::NONE,
                     kind: _,
                     state: _,
-                }) => camera_position = camera_position + forward * 0.1,
+                }) => camera_position = camera_position - forward * 0.1,
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Char('s'),
                     modifiers: KeyModifiers::NONE,
                     kind: _,
                     state: _,
-                }) => camera_position = camera_position - forward * 0.1,
+                }) => camera_position = camera_position + forward * 0.1,
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Char('a'),
                     modifiers: KeyModifiers::NONE,
                     kind: _,
                     state: _,
-                }) => camera_position = camera_position + right * 0.1,
+                }) => camera_position = camera_position - right * 0.1,
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Char('d'),
                     modifiers: KeyModifiers::NONE,
                     kind: _,
                     state: _,
-                }) => camera_position = camera_position - right * 0.1,
+                }) => camera_position = camera_position + right * 0.1,
 
                 // Camera controls
                 Event::Key(KeyEvent {
@@ -293,7 +293,7 @@ fn main() {
             let min_y = usize::clamp(min_y as usize, 0, HEIGHT);
             let max_x = usize::clamp(max_x as usize, 0, WIDTH);
             let max_y = usize::clamp(max_y as usize, 0, HEIGHT);
-
+            
             // Iterating through every pixel/point inside of triangle's bounding box
             for y in min_y..max_y {
                 for x in min_x..max_x {

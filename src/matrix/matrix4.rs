@@ -131,7 +131,7 @@ impl Matrix4 {
         let x = Vector4::new(1.0 / (aspect * tan), 0, 0, 0);
         let y = Vector4::new(0, 1.0 / tan, 0, 0);
         let z = Vector4::new(0, 0, -((z_far + z_near) / (z_far - z_near)), -1);
-        let w = Vector4::new(0, 0, 0, -((2.0 * z_far * z_near) / (z_far - z_near)));
+        let w = Vector4::new(0, 0, -((2.0 * z_far * z_near) / (z_far - z_near)), 0);
 
         // Z coordinate is scaled so that z values between z_near and z_far are normalized to (0, 1) range.
         // If value has a z_value greater than 1 or less than 0, then it is outside the view frustrum and we don't render.
