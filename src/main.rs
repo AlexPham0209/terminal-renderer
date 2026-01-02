@@ -2,6 +2,7 @@ mod grid;
 mod matrix;
 mod vector;
 
+use core::f32;
 use std::time::Duration;
 
 pub use crate::vector::vector2::Vector2;
@@ -27,6 +28,23 @@ struct Triangle {
     c: Vector3,
 }
 
+impl Triangle {
+    fn get_bounding_box(&self) -> (usize, usize, usize, usize) {
+        // Calculate triangle's bounding box
+        let min_x = f32::min(self.a.x, f32::min(self.b.x, self.c.x));
+        let min_y = f32::min(self.a.y, f32::min(self.b.y, self.c.y));
+        let max_x = f32::max(self.a.x, f32::max(self.b.x, self.c.x));
+        let max_y = f32::max(self.a.y, f32::max(self.b.y, self.c.y));
+
+        let min_x = usize::clamp(min_x as usize, 0, WIDTH);
+        let min_y = usize::clamp(min_y as usize, 0, HEIGHT);
+        let max_x = usize::clamp(max_x as usize, 0, WIDTH);
+        let max_y = usize::clamp(max_y as usize, 0, HEIGHT);
+
+        (min_x, min_y, max_x, max_y)
+    }
+}
+
 #[derive(Debug)]
 struct Transform {
     yaw: f32,
@@ -39,15 +57,16 @@ struct Transform {
 
     position: Vector3,
     scale: f32,
+    value: char
 }
 
 // Make sure that points are in counter-clockwise order
-fn edge_function(a: &Vector3, b: &Vector3, c: &Vector3) -> f32 {
+fn edge_function(a: Vector3, b: Vector3, c: Vector3) -> f32 {
     // Calculates vector representing the line from point A to C
-    let ac = *c - *a;
+    let ac = c - a;
 
     // Calculate the vector representing the triangle edge (A to B)
-    let ab = *a - *b;
+    let ab = a - b;
 
     // Calculating the normal/perpendicular vector of the AB side.
     let ab_perp = Vector3::new(ab.y, -ab.x, ab.z);
@@ -59,14 +78,14 @@ fn edge_function(a: &Vector3, b: &Vector3, c: &Vector3) -> f32 {
     ac.dot(ab_perp)
 }
 
-fn check_inside(tri: &Triangle, p: &Vector3) -> bool {
-    let Triangle { a, b, c } = tri;
-    let abp = edge_function(a, b, p) >= 0.;
-    let bcp = edge_function(b, c, p) >= 0.;
-    let cap = edge_function(c, a, p) >= 0.;
+// fn check_inside(tri: &Triangle, p: &Vector3) -> bool {
+//     let Triangle { a, b, c } = tri;
+//     let abp = edge_function(a, b, p) >= 0.;
+//     let bcp = edge_function(b, c, p) >= 0.;
+//     let cap = edge_function(c, a, p) >= 0.;
 
-    abp == bcp && bcp == cap
-}
+//     abp == bcp && bcp == cap
+// }
 
 fn to_screen_coordinates(vec: Vector3) -> Vector3 {
     let Vector3 { x, y, z } = vec;
@@ -78,8 +97,55 @@ fn to_screen_coordinates(vec: Vector3) -> Vector3 {
     )
 }
 
+fn rasterize_triangle(t: Triangle, grid: &mut Grid<char>, depth_buffer: &mut Grid<f32>, value: char)  {
+    let Triangle {a, b, c} = t;
+
+    // Skip if any of the points are behind the camera
+    if a.z < 0.0 || b.z < 0.0 || c.z < 0.0 || a.z > 1.0 || b.z > 1.0 || c.z > 1.0 {
+        return;
+    }
+
+    let (min_x, min_y, max_x, max_y) = t.get_bounding_box();
+    let abc = edge_function(a, b, c);
+
+    // Iterating through every pixel/point inside of triangle's bounding box
+    for y in min_y..max_y {
+        for x in min_x..max_x {
+            let p = Vector3::new(x, y, 0.0);
+
+            let abp = edge_function(a, b, p);
+            let bcp = edge_function(b, c, p);
+            let cap = edge_function(c, a, p);
+            let is_inside = ((abp >= 0.0) == (bcp >= 0.0) && (bcp >= 0.0) == (cap >= 0.0));
+
+            let depths = 1.0 / Vector3::new(
+                a.z, b.z, c.z
+            );
+
+            // Barycentric coordinates
+            let weights = Vector3::new(
+                abp / abc, bcp / abc, cap / abc
+            );
+            
+            // Calculates the depth
+            let depth = 1.0 / depths.dot(weights);
+            if let Some(prev) = depth_buffer.get(x, y) && depth >= *prev {
+                continue;
+            }
+
+            depth_buffer.set(depth, x, y);
+            
+            // Check whether pixel is inside of triangle
+            if is_inside {
+                grid.set(value, x as usize, y as usize);
+            }
+        }
+    }
+}   
+
 fn main() {
     let mut grid = Grid::new(' ', WIDTH, HEIGHT);
+    let mut depth_buffer: Grid<f32> = Grid::new(f32::INFINITY, WIDTH, HEIGHT);
 
     let tri1: Triangle = Triangle {
         a: Vector3::new(0.5, -0.5, 0.0),
@@ -110,6 +176,7 @@ fn main() {
 
         position: Vector3::new(0.2, 0.0, 1.0),
         scale: 1.0,
+        value: '.'
     };
 
     let mut transform2 = Transform {
@@ -123,6 +190,7 @@ fn main() {
 
         position: Vector3::new(0.6, -0.5, 2.0),
         scale: 0.5,
+        value: '#',
     };
 
     let mut transform3 = Transform {
@@ -136,6 +204,7 @@ fn main() {
 
         position: Vector3::new(-0.8, 0.25, -0.5),
         scale: 0.5,
+        value: '/'
     };
 
     let mut triangles = vec![(tri1, transform1), (tri2, transform2), (tri3, transform3)];
@@ -156,7 +225,7 @@ fn main() {
         let forward = direction.z;
         let right = direction.x;
 
-        if poll(Duration::from_millis(30)).unwrap() {
+        if poll(Duration::from_millis(10)).unwrap() {
             match read().unwrap() {
                 Event::Key(KeyEvent {
                     code: KeyCode::Char('w'),
@@ -245,12 +314,8 @@ fn main() {
                 dz,
                 position,
                 scale,
+                value
             } = *transform;
-
-            // Convert to homogenous coordinates
-            let a = a.homogenous();
-            let b = b.homogenous();
-            let c = c.homogenous();
 
             // Scaling matrix
             let scale = Matrix4::scale(scale);
@@ -270,11 +335,6 @@ fn main() {
             let b = perspective * view * translation * rotation * scale * b;
             let c = perspective * view * translation * rotation * scale * c;
 
-            // Convert back to cartesian coordinates
-            let a = a.cartesian();
-            let b = b.cartesian();
-            let c = c.cartesian();
-
             // Convert points to screen coordinates
             let a = to_screen_coordinates(a);
             let b = to_screen_coordinates(b);
@@ -282,34 +342,7 @@ fn main() {
 
             // Final projected triangle
             let t = Triangle { a, b, c };
-
-            // Calculate triangle's bounding box
-            let min_x = f32::min(a.x, f32::min(b.x, c.x));
-            let min_y = f32::min(a.y, f32::min(b.y, c.y));
-            let max_x = f32::max(a.x, f32::max(b.x, c.x));
-            let max_y = f32::max(a.y, f32::max(b.y, c.y));
-
-            let min_x = usize::clamp(min_x as usize, 0, WIDTH);
-            let min_y = usize::clamp(min_y as usize, 0, HEIGHT);
-            let max_x = usize::clamp(max_x as usize, 0, WIDTH);
-            let max_y = usize::clamp(max_y as usize, 0, HEIGHT);
-            
-            // Iterating through every pixel/point inside of triangle's bounding box
-            for y in min_y..max_y {
-                for x in min_x..max_x {
-                    let p = Vector3::new(x, y, 0.0);
-
-                    // Skip if any of the points are behind the camera
-                    if a.z < 0.0 || b.z < 0.0 || c.z < 0.0 || a.z > 1.0 || b.z > 1.0 || c.z > 1.0 {
-                        continue;
-                    }
-
-                    // Check whether pixel is inside of triangle
-                    if check_inside(&t, &p) {
-                        grid.set('#', x as usize, y as usize);
-                    }
-                }
-            }
+            rasterize_triangle(t, &mut grid, &mut depth_buffer, value);
 
             transform.yaw += transform.dx;
             transform.pitch += transform.dy;
@@ -319,5 +352,6 @@ fn main() {
         print!("{grid}");
         print!("\x1B[2J\x1B[1;1H");
         grid.clear(' ');
+        depth_buffer.clear(f32::INFINITY);
     }
 }
