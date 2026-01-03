@@ -1,5 +1,8 @@
 mod grid;
 mod matrix;
+mod model;
+mod transform;
+mod triangle;
 mod vector;
 
 use core::f32;
@@ -15,6 +18,9 @@ use crate::{
         rotation::{Angle, Rotation},
         scale::Scale,
     },
+    model::Model,
+    transform::Transform,
+    triangle::Triangle,
     vector::{vector::Vector, vector3::Vector3},
 };
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers, poll, read};
@@ -22,43 +28,6 @@ pub use grid::Grid;
 
 const WIDTH: usize = 200;
 const HEIGHT: usize = 100;
-
-struct Triangle {
-    a: Vector3,
-    b: Vector3,
-    c: Vector3,
-}
-
-impl Triangle {
-    fn get_bounding_box(&self) -> (usize, usize, usize, usize) {
-        // Calculate triangle's bounding box
-        let min_x = f32::min(self.a.x, f32::min(self.b.x, self.c.x));
-        let min_y = f32::min(self.a.y, f32::min(self.b.y, self.c.y));
-        let max_x = f32::max(self.a.x, f32::max(self.b.x, self.c.x));
-        let max_y = f32::max(self.a.y, f32::max(self.b.y, self.c.y));
-
-        let min_x = usize::clamp(min_x as usize, 0, WIDTH);
-        let min_y = usize::clamp(min_y as usize, 0, HEIGHT);
-        let max_x = usize::clamp(max_x as usize, 0, WIDTH);
-        let max_y = usize::clamp(max_y as usize, 0, HEIGHT);
-
-        (min_x, min_y, max_x, max_y)
-    }
-}
-
-#[derive(Debug)]
-struct Transform {
-    yaw: f32,
-    pitch: f32,
-    roll: f32,
-
-    dx: f32,
-    dy: f32,
-    dz: f32,
-
-    position: Vector3,
-    scale: f32,
-}
 
 // Make sure that points are in counter-clockwise order
 fn edge_function(a: Vector3, b: Vector3, c: Vector3) -> f32 {
@@ -77,15 +46,6 @@ fn edge_function(a: Vector3, b: Vector3, c: Vector3) -> f32 {
     // If the dot product between the normal and the AC vector are positive, then the vector is on the right side of the triangle
     ac.dot(ab_perp)
 }
-
-// fn check_inside(tri: &Triangle, p: &Vector3) -> bool {
-//     let Triangle { a, b, c } = tri;
-//     let abp = edge_function(a, b, p) >= 0.;
-//     let bcp = edge_function(b, c, p) >= 0.;
-//     let cap = edge_function(c, a, p) >= 0.;
-
-//     abp == bcp && bcp == cap
-// }
 
 fn to_screen_coordinates(vec: Vector3) -> Vector3 {
     let Vector3 { x, y, z } = vec;
@@ -166,7 +126,7 @@ fn rasterize_triangle(
     }
 }
 
-fn main() {
+fn demo() {
     let mut grid = Grid::new(' ', WIDTH, HEIGHT);
     let mut depth_buffer: Grid<f32> = Grid::new(f32::INFINITY, WIDTH, HEIGHT);
 
@@ -189,40 +149,25 @@ fn main() {
     };
 
     let mut transform1 = Transform {
-        yaw: 0.0,
-        pitch: 0.0,
-        roll: 0.0,
-
-        dx: 1.0,
-        dy: 1.0,
-        dz: 0.0,
-
+        yaw: Angle::Degrees(30.0),
+        pitch: Angle::Degrees(100.0),
+        roll: Angle::Degrees(50.0),
         position: Vector3::new(0.2, 0.0, 1.0),
         scale: 0.25,
     };
 
     let mut transform2 = Transform {
-        yaw: 30.0,
-        pitch: 100.0,
-        roll: 50.0,
-
-        dx: 2.0,
-        dy: 0.0,
-        dz: 3.0,
-
+        yaw: Angle::Degrees(30.0),
+        pitch: Angle::Degrees(100.0),
+        roll: Angle::Degrees(50.0),
         position: Vector3::new(0.6, -0.5, 2.0),
         scale: 0.5,
     };
 
     let mut transform3 = Transform {
-        yaw: 55.0,
-        pitch: 180.0,
-        roll: 12.0,
-
-        dx: 0.0,
-        dy: 1.0,
-        dz: 3.0,
-
+        yaw: Angle::Degrees(30.0),
+        pitch: Angle::Degrees(100.0),
+        roll: Angle::Degrees(50.0),
         position: Vector3::new(0, 0.0, 0.0),
         scale: 0.75,
     };
@@ -332,9 +277,7 @@ fn main() {
                 yaw,
                 roll,
                 pitch,
-                dx,
-                dy,
-                dz,
+
                 position,
                 scale,
             } = *transform;
@@ -343,24 +286,20 @@ fn main() {
             let scalar = Matrix4::scale(scale);
 
             // Rotation matrix
-            let rotation = Matrix4::rotation(
-                Angle::Degrees(yaw),
-                Angle::Degrees(pitch),
-                Angle::Degrees(roll),
-            );
+            let rotation = Matrix4::rotation(yaw, pitch, roll);
 
             // Translation matrix
             let translation = Matrix4::translation(position);
 
             // Calculating normal vectors for each vertex (in object space)
-            let normal_1 = get_normal(a, b, c);
+            let normal = get_normal(a, b, c);
 
             //Calculating world normal matrix
             let model_inverse = Matrix3::scale(1.0 / scale) * rotation.cartesian().transpose();
             let normal_matrix = model_inverse.transpose();
 
             // Converting normal vectors to world space
-            let normal = (normal_matrix * normal_1).normalize();
+            let normal = (normal_matrix * normal).normalize();
 
             // Transform points using matrices
             let a = perspective * view * translation * rotation * scalar * a;
@@ -374,17 +313,7 @@ fn main() {
 
             // Final projected triangle
             let t = Triangle { a, b, c };
-            rasterize_triangle(
-                t,
-                &mut grid,
-                &mut depth_buffer,
-                normal,
-                light,
-            );
-
-            transform.yaw += transform.dx;
-            transform.pitch += transform.dy;
-            transform.roll += transform.dz;
+            rasterize_triangle(t, &mut grid, &mut depth_buffer, normal, light);
         }
 
         print!("{grid}");
@@ -392,4 +321,8 @@ fn main() {
         grid.clear(' ');
         depth_buffer.clear(f32::INFINITY);
     }
+}
+
+fn main() {
+    Model::new("bin/cube.obj");
 }

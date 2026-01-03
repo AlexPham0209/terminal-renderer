@@ -120,6 +120,10 @@ impl Matrix4 {
         Matrix4::rotation(yaw, pitch, roll).transpose() * Matrix4::translation(-t)
     }
 
+    pub fn view_inverse(yaw: Angle, pitch: Angle, roll: Angle, t: Vector3) -> Matrix4 {
+        Matrix4::translation(t) * Matrix4::rotation(yaw, pitch, roll)
+    }
+
     pub fn perspective(fov: Angle, z_far: f32, z_near: f32, aspect: f32) -> Matrix4 {
         let fov: f32 = match fov {
             Angle::Degrees(degrees) => degrees.to_radians(),
