@@ -1,19 +1,23 @@
-use crate::{HEIGHT, WIDTH, vector::vector3::Vector3};
+use crate::{HEIGHT, WIDTH, vector::vector3::Vector3, vertex::Vertex};
 
 #[derive(Debug)]
-pub struct Triangle {
-    pub a: Vector3,
-    pub b: Vector3,
-    pub c: Vector3,
+pub struct Triangle<'a> {
+    pub a: Vertex<'a>,
+    pub b: Vertex<'a>,
+    pub c: Vertex<'a>,
 }
 
-impl Triangle {
+impl<'a> Triangle<'a> {
     pub fn get_bounding_box(&self) -> (usize, usize, usize, usize) {
+        let a = self.a.pos;
+        let b = self.b.pos;
+        let c = self.c.pos;
+
         // Calculate triangle's bounding box
-        let min_x = f32::min(self.a.x, f32::min(self.b.x, self.c.x));
-        let min_y = f32::min(self.a.y, f32::min(self.b.y, self.c.y));
-        let max_x = f32::max(self.a.x, f32::max(self.b.x, self.c.x));
-        let max_y = f32::max(self.a.y, f32::max(self.b.y, self.c.y));
+        let min_x = f32::min(a.x, f32::min(b.x, c.x));
+        let min_y = f32::min(a.y, f32::min(b.y, c.y));
+        let max_x = f32::max(a.x, f32::max(b.x, c.x));
+        let max_y = f32::max(a.y, f32::max(b.y, c.y));
 
         let min_x = usize::clamp(min_x as usize, 0, WIDTH);
         let min_y = usize::clamp(min_y as usize, 0, HEIGHT);

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fs};
 
-use crate::{Vector2, transform::Transform, triangle::Triangle, vector::vector3::Vector3};
+use crate::{Vector2, matrix::rotation::Angle, triangle::Triangle, vector::vector3::Vector3};
 
 
 #[derive(Debug, Clone, Copy)]
@@ -16,7 +16,18 @@ pub struct Model {
     pub vertices: Vec<Vector3>,
     pub tex_coords: Vec<Vector2>,
     pub normals: Vec<Vector3>,
+    pub transform: Transform
 }
+
+#[derive(Debug)]
+pub struct Transform {
+    pub yaw: Angle,
+    pub pitch: Angle,
+    pub roll: Angle,
+    pub position: Vector3,
+    pub scale: f32,
+}
+
 
 impl Model {
     pub fn load(path: &str) -> Option<Model> {
@@ -85,12 +96,21 @@ impl Model {
                 data.push((f[0], f[1], f[2]));
             }
         }
-        // println!("{:?}", normals);
+
+        let transform = Transform {
+            yaw: Angle::Degrees(0.0),
+            pitch: Angle::Degrees(0.0),
+            roll: Angle::Degrees(0.0),
+            position: Vector3::new(0.0, 0.0, 0.0),
+            scale: 0.1
+        };
+
         let model = Model {
             data,
             vertices,
             normals,
             tex_coords,
+            transform
         };
 
         Some(model)

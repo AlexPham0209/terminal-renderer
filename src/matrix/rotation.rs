@@ -1,6 +1,6 @@
 use crate::matrix::{matrix3::Matrix3, matrix4::Matrix4};
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum Angle {
     Radians(f32),
     Degrees(f32),

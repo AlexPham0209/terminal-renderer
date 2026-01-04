@@ -1,7 +1,6 @@
 mod grid;
 mod matrix;
 mod model;
-mod transform;
 mod triangle;
 mod vector;
 mod vertex;
@@ -19,16 +18,15 @@ use crate::{
         rotation::{Angle, Rotation},
         scale::Scale,
     },
-    model::{Model, VertexData},
-    transform::Transform,
+    model::{Model, Transform, VertexData},
     triangle::Triangle,
     vector::{vector::Vector, vector3::Vector3}, vertex::Vertex,
 };
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers, poll, read};
 pub use grid::Grid;
 
-const WIDTH: usize = 200;
-const HEIGHT: usize = 100;
+const WIDTH: usize = 300;
+const HEIGHT: usize = 150;
 
 // Make sure that points are in counter-clockwise order
 fn edge_function(a: Vector3, b: Vector3, c: Vector3) -> f32 {
@@ -53,7 +51,7 @@ fn to_screen_coordinates(vec: Vector3) -> Vector3 {
 
     Vector3::new(
         ((x + 1.0) / 2.0) * (WIDTH as f32),
-        ((y + 1.0) / 2.0) * (HEIGHT as f32),
+        ((-y + 1.0) / 2.0) * (HEIGHT as f32),
         z,
     )
 }
@@ -65,7 +63,7 @@ fn get_normal(a: Vector3, b: Vector3, c: Vector3) -> Vector3 {
 }
 
 fn rasterize_triangle(
-    t: Triangle,
+    t: &Triangle,
     grid: &mut Grid<char>,
     depth_buffer: &mut Grid<f32>,
     normal: Vector3,
@@ -74,22 +72,22 @@ fn rasterize_triangle(
     let Triangle { a, b, c } = t;
 
     // Skip if any of the points are behind the camera
-    if a.z < 0.0 || b.z < 0.0 || c.z < 0.0 || a.z > 1.0 || b.z > 1.0 || c.z > 1.0 {
+    if a.pos.z < 0.0 || b.pos.z < 0.0 || c.pos.z < 0.0 {
         return;
     }
 
     let (min_x, min_y, max_x, max_y) = t.get_bounding_box();
-    let abc = edge_function(a, b, c);
+    let abc = edge_function(*a.pos, *b.pos, *c.pos);
     let gradient = "`.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
     // Iterating through every pixel/point inside of triangle's bounding box
     for y in min_y..max_y {
         for x in min_x..max_x {
             let p = Vector3::new(x, y, 0.0);
 
-            let abp = edge_function(a, b, p);
-            let bcp = edge_function(b, c, p);
-            let cap = edge_function(c, a, p);
-            let is_inside = (abp >= 0.0) == (bcp >= 0.0) && (bcp >= 0.0) == (cap >= 0.0);
+            let abp = edge_function(*a.pos, *b.pos, p);
+            let bcp = edge_function(*b.pos, *c.pos, p);
+            let cap = edge_function(*c.pos, *a.pos, p);
+            let is_inside = (abp <= 0.0) && (bcp <= 0.0) && (cap <= 0.0);
 
             if !is_inside {
                 continue;
@@ -98,7 +96,7 @@ fn rasterize_triangle(
             // Barycentric coordinates
             let weights = Vector3::new(abp / abc, bcp / abc, cap / abc);
 
-            let depths = 1.0 / Vector3::new(a.z, b.z, c.z);
+            let depths = 1.0 / Vector3::new(a.pos.z, b.pos.z, c.pos.z);
             let depth = 1.0 / depths.dot(weights);
 
             // // Interpolated normals
@@ -131,49 +129,8 @@ fn demo() {
     let mut grid = Grid::new(' ', WIDTH, HEIGHT);
     let mut depth_buffer: Grid<f32> = Grid::new(f32::INFINITY, WIDTH, HEIGHT);
 
-    let tri1: Triangle = Triangle {
-        a: Vector3::new(0.5, -0.5, 0.0),
-        b: Vector3::new(-0.5, -0.5, 0.0),
-        c: Vector3::new(0.0, 0.5, 0.0),
-    };
-
-    let tri2: Triangle = Triangle {
-        a: Vector3::new(0.15, -0.25, 0.0),
-        b: Vector3::new(-0.5, -0.45, 0.0),
-        c: Vector3::new(0.0, 0.5, 0.0),
-    };
-
-    let tri3: Triangle = Triangle {
-        a: Vector3::new(0.15, -0.25, 0.0),
-        b: Vector3::new(-0.5, -0.45, 0.0),
-        c: Vector3::new(0.0, 0.5, 0.0),
-    };
-
-    let mut transform1 = Transform {
-        yaw: Angle::Degrees(30.0),
-        pitch: Angle::Degrees(100.0),
-        roll: Angle::Degrees(50.0),
-        position: Vector3::new(0.2, 0.0, 1.0),
-        scale: 0.25,
-    };
-
-    let mut transform2 = Transform {
-        yaw: Angle::Degrees(30.0),
-        pitch: Angle::Degrees(100.0),
-        roll: Angle::Degrees(50.0),
-        position: Vector3::new(0.6, -0.5, 2.0),
-        scale: 0.5,
-    };
-
-    let mut transform3 = Transform {
-        yaw: Angle::Degrees(30.0),
-        pitch: Angle::Degrees(100.0),
-        roll: Angle::Degrees(50.0),
-        position: Vector3::new(0, 0.0, 0.0),
-        scale: 0.75,
-    };
-
-    let mut triangles = vec![(tri1, transform1), (tri2, transform2), (tri3, transform3)];
+    let mut model = Model::load("bin/teapot.obj").unwrap();
+    println!("{:?}", model);
 
     let mut camera_position = Vector3::new(0, 0, 0);
     let mut camera_pitch = 0.0;
@@ -181,12 +138,12 @@ fn demo() {
     let mut camera_roll = 0.0;
 
     // In world coordinates
-    let light = Vector3::new(0.5, -3.0, 0.5);
+    let light = Vector3::new(0.5, 1.0, 0.5);
 
     // Perspective matrix
     let fov = Angle::Degrees(90.0);
     let z_far = 10000.0;
-    let z_near = 0.1;
+    let z_near = 0.05;
     let aspect = (WIDTH as f32) / (HEIGHT as f32);
     let perspective = Matrix4::perspective(fov, z_far, z_near, aspect);
 
@@ -237,14 +194,14 @@ fn demo() {
                     modifiers: KeyModifiers::NONE,
                     kind: _,
                     state: _,
-                }) => camera_yaw -= 2.0,
+                }) => camera_yaw += 2.0,
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Down,
                     modifiers: KeyModifiers::NONE,
                     kind: _,
                     state: _,
-                }) => camera_yaw += 2.0,
+                }) => camera_yaw -= 2.0,
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Left,
@@ -272,8 +229,11 @@ fn demo() {
             camera_position,
         );
 
-        for (tri, transform) in &mut triangles {
-            let Triangle { a, b, c } = *tri;
+        for (a, b, c) in &model.data {
+            let a = Vertex::new(a, &model);
+            let b = Vertex::new(b, &model);
+            let c = Vertex::new(c, &model);
+
             let Transform {
                 yaw,
                 roll,
@@ -281,19 +241,19 @@ fn demo() {
 
                 position,
                 scale,
-            } = *transform;
+            } = &model.transform;
 
             // Scaling matrix
-            let scalar = Matrix4::scale(scale);
+            let scalar = Matrix4::scale(*scale);
 
             // Rotation matrix
-            let rotation = Matrix4::rotation(yaw, pitch, roll);
+            let rotation = Matrix4::rotation(*yaw, *pitch, *roll);
 
             // Translation matrix
-            let translation = Matrix4::translation(position);
+            let translation = Matrix4::translation(*position);
 
             // Calculating normal vectors for each vertex (in object space)
-            let normal = get_normal(a, b, c);
+            let normal = get_normal(*a.pos, *b.pos, *c.pos);
 
             //Calculating world normal matrix
             let model_inverse = Matrix3::scale(1.0 / scale) * rotation.cartesian().transpose();
@@ -303,39 +263,51 @@ fn demo() {
             let normal = (normal_matrix * normal).normalize();
 
             // Transform points using matrices
-            let a = perspective * view * translation * rotation * scalar * a;
-            let b = perspective * view * translation * rotation * scalar * b;
-            let c = perspective * view * translation * rotation * scalar * c;
+            let a_pos = perspective * view * translation * rotation * scalar * *a.pos;
+            let b_pos = perspective * view * translation * rotation * scalar * *b.pos;
+            let c_pos = perspective * view * translation * rotation * scalar * *c.pos;
 
             // Convert points to screen coordinates
-            let a = to_screen_coordinates(a);
-            let b = to_screen_coordinates(b);
-            let c = to_screen_coordinates(c);
+            let a_pos = to_screen_coordinates(a_pos);
+            let b_pos = to_screen_coordinates(b_pos);
+            let c_pos = to_screen_coordinates(c_pos);
 
-            // Final projected triangle
+            let a = Vertex {
+                pos: &a_pos,
+                normal: Some(&normal),
+                ..a
+            };
+
+            let b = Vertex {
+                pos: &b_pos,
+                normal: Some(&normal),
+                ..b
+            };
+
+            let c = Vertex {
+                pos: &c_pos,
+                normal: Some(&normal),
+                ..c
+            };  
+
             let t = Triangle { a, b, c };
-            rasterize_triangle(t, &mut grid, &mut depth_buffer, normal, light);
+            rasterize_triangle(&t, &mut grid, &mut depth_buffer, normal, light);
+
         }
+
 
         print!("{grid}");
         print!("\x1B[2J\x1B[1;1H");
         grid.clear(' ');
         depth_buffer.clear(f32::INFINITY);
+        model.transform.yaw = match model.transform.yaw {
+            Angle::Radians(value) => Angle::Radians(value),
+            Angle::Degrees(value) => Angle::Degrees(value + 1.0),
+        };
     }
 }
 
 
 fn main() {
-    let model = Model::load("bin/cube.obj").unwrap();
-
-    for (a, b, c) in &model.data {
-        
-        let a = Vertex::new(a, &model);
-        let b = Vertex::new(b, &model);
-        let c = Vertex::new(c, &model);
-        
-        println!("{:?}", a);
-        println!("{:?}", b);
-        println!("{:?}\n", c);
-    }
+    demo();
 }

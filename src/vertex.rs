@@ -10,7 +10,7 @@ pub struct Vertex<'a> {
 impl<'a> Vertex<'a> {
     pub fn new(data: &'a VertexData, model: &'a Model) -> Vertex<'a> {
         let VertexData { pos, tex_coord, normal } = data;
-
+        
         let pos = model.vertices.get(data.pos - 1).unwrap();
         
         let tex_coord = match tex_coord {
