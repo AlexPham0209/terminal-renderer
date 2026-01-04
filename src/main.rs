@@ -251,7 +251,7 @@ fn show_model(model: &mut Model) {
 
             // Calculating normal vectors for each vertex (in object space)
             let normal = get_normal(*a.pos, *b.pos, *c.pos);
-
+            
             //Calculating world normal matrix
             let model_inverse = Matrix3::scale(1.0 / scale) * rotation.cartesian().transpose();
             let normal_matrix = model_inverse.transpose();
@@ -305,7 +305,7 @@ fn show_model(model: &mut Model) {
 
 
 fn main() {
-    let mut model = Model::load("bin/teapot.obj").unwrap();
-    model.set_scale(0.1);
+    let mut model = Model::load("bin/test.obj").expect("Used valid .obj path");
+    model.set_scale(1.0);
     show_model(&mut model);
 }
