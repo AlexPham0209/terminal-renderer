@@ -25,8 +25,8 @@ use crate::{
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers, poll, read};
 pub use grid::Grid;
 
-const WIDTH: usize = 400;
-const HEIGHT: usize = 200;
+const WIDTH: usize = 200;
+const HEIGHT: usize = 100;
 
 // Make sure that points are in counter-clockwise order
 fn edge_function(a: Vector3, b: Vector3, c: Vector3) -> f32 {
@@ -138,7 +138,7 @@ fn show_model(model: &mut Model) {
     let light = Vector3::new(0.0, 0.0, 2.0);
 
     // Perspective matrix
-    let fov = Angle::Degrees(90.0);
+    let fov = Angle::Degrees(45.0);
     let z_far = 10.0;
     let z_near = 0.05;
     let aspect = (WIDTH as f32) / (HEIGHT as f32);
@@ -289,7 +289,6 @@ fn show_model(model: &mut Model) {
 
             let t = Triangle { a, b, c };
             rasterize_triangle(&t, &mut grid, &mut depth_buffer, normal, light);
-
         }
 
 
@@ -298,13 +297,13 @@ fn show_model(model: &mut Model) {
         grid.clear(' ');
         depth_buffer.clear(f32::INFINITY);
         
-        // model.rotate_y(1.0);
+        model.rotate_y(3.0);
     }
 }
 
 
 fn main() {
-    let mut model = Model::load("bin/teapot.obj").expect("Please use valid .obj path");
-    model.set_scale(0.1);
+    let mut model = Model::load("bin/cat.obj").expect("Please use valid .obj path");
+    model.set_scale(0.01);
     show_model(&mut model);
 }

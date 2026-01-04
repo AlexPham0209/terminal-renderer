@@ -43,7 +43,12 @@ impl Model {
         let mut faces: Vec<Vec<&str>> = Vec::new();
 
         for line in &data {
-            let line = line.split(' ').collect::<Vec<&str>>();
+            let line = line.split_whitespace().collect::<Vec<&str>>();
+
+            if line.len() == 0 {
+                continue;
+            }
+
             let (command, parameters) = line.split_first().expect("Incomplete line");
 
             match *command {
@@ -123,7 +128,7 @@ impl Model {
 
     fn to_vector3(vert: &Vec<&str>) -> Option<Vector3> {
         let vert: Vec<f32> = vert.iter().filter_map(|s| s.parse::<f32>().ok()).collect();
-        if vert.len() != 3 {
+        if vert.len() < 3 {
             return None;
         }
         Some(Vector3::new(vert[0], vert[1], vert[2]))
@@ -131,7 +136,7 @@ impl Model {
 
     fn to_vector2(vert: &Vec<&str>) -> Option<Vector2> {
         let vert: Vec<f32> = vert.iter().filter_map(|s| s.parse::<f32>().ok()).collect();
-        if vert.len() != 2 {
+        if vert.len() < 2 {
             return None;
         }
 
