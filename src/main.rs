@@ -25,8 +25,8 @@ use crate::{
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers, poll, read};
 pub use grid::Grid;
 
-const WIDTH: usize = 300;
-const HEIGHT: usize = 150;
+const WIDTH: usize = 400;
+const HEIGHT: usize = 200;
 
 // Make sure that points are in counter-clockwise order
 fn edge_function(a: Vector3, b: Vector3, c: Vector3) -> f32 {
@@ -72,13 +72,13 @@ fn rasterize_triangle(
     let Triangle { a, b, c } = t;
 
     // Skip if any of the points are behind the camera
-    if a.pos.z < 0.0 || b.pos.z < 0.0 || c.pos.z < 0.0 {
+    if a.pos.z < 0.0 || b.pos.z < 0.0 || c.pos.z < 0.0 || a.pos.z > 1.0 || b.pos.z > 1.0 || c.pos.z > 1.0 {
         return;
     }
 
     let (min_x, min_y, max_x, max_y) = t.get_bounding_box();
     let abc = edge_function(*a.pos, *b.pos, *c.pos);
-    let gradient = "`.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI31tlu[neoZ5Yxjya]2ESwqkP6h9d4VpOGbUAKXHm8RD#$Bg0MNWQ%&@";
+    let gradient = ".,-~:;=!*#$@";
     // Iterating through every pixel/point inside of triangle's bounding box
     for y in min_y..max_y {
         for x in min_x..max_x {
@@ -109,7 +109,7 @@ fn rasterize_triangle(
             // Calculating light value
             let l = (light - normal).normalize();
             let value = (normal.dot(l) + 1.0) / 2.0;
-            let value = f32::round(value * ((gradient.len() - 1) as f32)) as usize;
+            let value = f32::floor(value * ((gradient.len() - 1) as f32)) as usize;
             let value: char = gradient.as_bytes()[value] as char;
 
             // Calculates the depth and uses it to determine whether current pixel is has lowest depth
@@ -125,12 +125,9 @@ fn rasterize_triangle(
     }
 }
 
-fn demo() {
+fn show_model(model: &mut Model) {
     let mut grid = Grid::new(' ', WIDTH, HEIGHT);
     let mut depth_buffer: Grid<f32> = Grid::new(f32::INFINITY, WIDTH, HEIGHT);
-
-    let mut model = Model::load("bin/teapot.obj").unwrap();
-    println!("{:?}", model);
 
     let mut camera_position = Vector3::new(0, 0, 0);
     let mut camera_pitch = 0.0;
@@ -138,11 +135,11 @@ fn demo() {
     let mut camera_roll = 0.0;
 
     // In world coordinates
-    let light = Vector3::new(0.5, 1.0, 0.5);
+    let light = Vector3::new(0.0, 0.0, 2.0);
 
     // Perspective matrix
     let fov = Angle::Degrees(90.0);
-    let z_far = 10000.0;
+    let z_far = 10.0;
     let z_near = 0.05;
     let aspect = (WIDTH as f32) / (HEIGHT as f32);
     let perspective = Matrix4::perspective(fov, z_far, z_near, aspect);
@@ -165,28 +162,28 @@ fn demo() {
                     modifiers: KeyModifiers::NONE,
                     kind: _,
                     state: _,
-                }) => camera_position = camera_position - forward * 0.1,
+                }) => camera_position = camera_position - forward * 0.05,
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Char('s'),
                     modifiers: KeyModifiers::NONE,
                     kind: _,
                     state: _,
-                }) => camera_position = camera_position + forward * 0.1,
+                }) => camera_position = camera_position + forward * 0.05,
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Char('a'),
                     modifiers: KeyModifiers::NONE,
                     kind: _,
                     state: _,
-                }) => camera_position = camera_position - right * 0.1,
+                }) => camera_position = camera_position - right * 0.05,
 
                 Event::Key(KeyEvent {
                     code: KeyCode::Char('d'),
                     modifiers: KeyModifiers::NONE,
                     kind: _,
                     state: _,
-                }) => camera_position = camera_position + right * 0.1,
+                }) => camera_position = camera_position + right * 0.05,
 
                 // Camera controls
                 Event::Key(KeyEvent {
@@ -300,14 +297,15 @@ fn demo() {
         print!("\x1B[2J\x1B[1;1H");
         grid.clear(' ');
         depth_buffer.clear(f32::INFINITY);
-        model.transform.yaw = match model.transform.yaw {
-            Angle::Radians(value) => Angle::Radians(value),
-            Angle::Degrees(value) => Angle::Degrees(value + 1.0),
-        };
+        
+
+        // model.rotate_y(1.0);
     }
 }
 
 
 fn main() {
-    demo();
+    let mut model = Model::load("bin/teapot.obj").unwrap();
+    model.set_scale(0.1);
+    show_model(&mut model);
 }

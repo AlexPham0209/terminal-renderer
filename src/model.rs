@@ -102,7 +102,7 @@ impl Model {
             pitch: Angle::Degrees(0.0),
             roll: Angle::Degrees(0.0),
             position: Vector3::new(0.0, 0.0, 0.0),
-            scale: 0.1
+            scale: 1.0
         };
 
         let model = Model {
@@ -133,8 +133,37 @@ impl Model {
         Some(Vector2::new(vert[0], vert[1]))
     }
 
-    // fn triangles(&self) {
-        
-    // }
-    
+    pub fn set_scale(&mut self, scale: f32) {
+        self.transform.scale = scale;
+    }
+
+    pub fn rotate_x(&mut self, yaw: f32) {
+        self.transform.yaw = match self.transform.yaw {
+            Angle::Radians(value) => Angle::Radians(value),
+            Angle::Degrees(value) => Angle::Degrees(value + yaw),
+        };
+    }
+
+    pub fn rotate_y(&mut self, pitch: f32) {
+        self.transform.pitch = match self.transform.pitch {
+            Angle::Radians(value) => Angle::Radians(value),
+            Angle::Degrees(value) => Angle::Degrees(value + pitch),
+        };
+    }
+
+    pub fn rotate_z(&mut self, roll: f32) {
+        self.transform.roll = match self.transform.roll {
+            Angle::Radians(value) => Angle::Radians(value),
+            Angle::Degrees(value) => Angle::Degrees(value + roll),
+        };
+    }
+
+    pub fn set_position(&mut self, position: Vector3) {
+        self.transform.position = position;
+    }
+
+    pub fn translate(&mut self, amount: Vector3) {
+        self.transform.position = self.transform.position + amount;
+    }
+
 }
