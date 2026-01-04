@@ -2,21 +2,24 @@ use std::{collections::HashMap, fs};
 
 use crate::{Vector2, transform::Transform, triangle::Triangle, vector::vector3::Vector3};
 
-#[derive(Debug)]
-pub struct Vertex {
-    pos: Vector3,
-    tex_coord: Option<Vector2>,
-    normal: Option<Vector3>,
+
+#[derive(Debug, Clone, Copy)]
+pub struct VertexData {
+    pub pos: usize,
+    pub tex_coord: Option<usize>,
+    pub normal: Option<usize>,
 }
 
+#[derive(Debug)]
 pub struct Model {
-    pub vertices: Vec<Vertex>,
-    pub triangles: Vec<Triangle>,
-    pub transform: Transform,
+    pub data: Vec<(VertexData, VertexData, VertexData)>,
+    pub vertices: Vec<Vector3>,
+    pub tex_coords: Vec<Vector2>,
+    pub normals: Vec<Vector3>,
 }
 
 impl Model {
-    pub fn new(path: &str) -> Option<i32> {
+    pub fn load(path: &str) -> Option<Model> {
         // Reading obj file
         let data: Vec<String> = match fs::read_to_string(path) {
             Ok(data) => data.lines().map(String::from).collect(),
@@ -54,39 +57,43 @@ impl Model {
             }
         }
 
-        for face in faces {
+        let mut data: Vec<(VertexData, VertexData, VertexData)> = Vec::new();
+        for face in &faces {
+            let mut f: Vec<VertexData> = Vec::new();
+            
             for vertex in face {
                 let vertex = vertex
                     .split("/")
                     .into_iter()
                     .filter_map(|s| s.parse::<usize>().ok())
                     .collect::<Vec<usize>>();
+                
+                let pos = *vertex.get(0).unwrap();
+                let tex_coord = vertex.get(1).copied();
+                let normal = vertex.get(2).copied();
 
-                let index = *vertex.get(0).unwrap() - 1;
-
-                let pos = *vertices.get(index).expect("Index out of range");
-
-                let tex_coord: Option<Vector2> = match vertex.get(1) {
-                    Some(index) => Some(*tex_coords.get(*index - 1).expect("Index out of range")),
-                    None => None,
-                };
-
-                let normal: Option<Vector3> = match vertex.get(2) {
-                    Some(index) => Some(*normals.get(*index - 1).expect("Index out of range")),
-                    None => None,
-                };
-
-                let vertex = Vertex {
+                let vertex = VertexData {
                     pos,
                     tex_coord,
                     normal,
                 };
 
-                println!("{:?}", vertex);
+                f.push(vertex);
+            }
+
+            if f.len() == 3 {
+                data.push((f[0], f[1], f[2]));
             }
         }
         // println!("{:?}", normals);
-        Some(0)
+        let model = Model {
+            data,
+            vertices,
+            normals,
+            tex_coords,
+        };
+
+        Some(model)
     }
 
     fn to_vector3(vert: &Vec<&str>) -> Option<Vector3> {
@@ -105,4 +112,9 @@ impl Model {
 
         Some(Vector2::new(vert[0], vert[1]))
     }
+
+    // fn triangles(&self) {
+        
+    // }
+    
 }

@@ -4,6 +4,7 @@ mod model;
 mod transform;
 mod triangle;
 mod vector;
+mod vertex;
 
 use core::f32;
 use std::time::Duration;
@@ -18,10 +19,10 @@ use crate::{
         rotation::{Angle, Rotation},
         scale::Scale,
     },
-    model::Model,
+    model::{Model, VertexData},
     transform::Transform,
     triangle::Triangle,
-    vector::{vector::Vector, vector3::Vector3},
+    vector::{vector::Vector, vector3::Vector3}, vertex::Vertex,
 };
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers, poll, read};
 pub use grid::Grid;
@@ -323,6 +324,18 @@ fn demo() {
     }
 }
 
+
 fn main() {
-    Model::new("bin/cube.obj");
+    let model = Model::load("bin/teapot.obj").unwrap();
+
+    for (a, b, c) in &model.data {
+        
+        let a = Vertex::new(a, &model);
+        let b = Vertex::new(b, &model);
+        let c = Vertex::new(c, &model);
+        
+        println!("{:?}", a);
+        println!("{:?}", b);
+        println!("{:?}\n", c);
+    }
 }
