@@ -305,7 +305,7 @@ fn show_model(model: &mut Model) {
 
 
 fn main() {
-    let mut model = Model::load("bin/test.obj").expect("Used valid .obj path");
-    model.set_scale(1.0);
+    let mut model = Model::load("bin/phil_the_groundhog_test.obj").expect("Used valid .obj path");
+    model.set_scale(0.1);
     show_model(&mut model);
 }
