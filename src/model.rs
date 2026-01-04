@@ -95,7 +95,7 @@ impl Model {
             if f.len() == 3 {
                 data.push((f[0], f[1], f[2]));
             }
-            
+
             if f.len() == 4 {
                 data.push((f[0], f[1], f[2]));
                 data.push((f[0], f[2], f[3]));
@@ -117,8 +117,6 @@ impl Model {
             tex_coords,
             transform
         };
-
-        println!("{:?}", model.data);
 
         Some(model)
     }

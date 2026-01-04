@@ -80,8 +80,8 @@ fn rasterize_triangle(
     let abc = edge_function(*a.pos, *b.pos, *c.pos);
     let gradient = ".,-~:;=!*#$@";
     // Iterating through every pixel/point inside of triangle's bounding box
-    for y in min_y..max_y {
-        for x in min_x..max_x {
+    for y in min_y..=max_y {
+        for x in min_x..=max_x {
             let p = Vector3::new(x, y, 0.0);
 
             let abp = edge_function(*a.pos, *b.pos, p);
@@ -109,7 +109,7 @@ fn rasterize_triangle(
             // Calculating light value
             let l = (light - normal).normalize();
             let value = (normal.dot(l) + 1.0) / 2.0;
-            let value = f32::floor(value * ((gradient.len() - 1) as f32)) as usize;
+            let value = f32::ceil(value * ((gradient.len() - 1) as f32)) as usize;
             let value: char = gradient.as_bytes()[value] as char;
 
             // Calculates the depth and uses it to determine whether current pixel is has lowest depth
@@ -258,7 +258,7 @@ fn show_model(model: &mut Model) {
 
             // Converting normal vectors to world space
             let normal = (normal_matrix * normal).normalize();
-
+            
             // Transform points using matrices
             let a_pos = perspective * view * translation * rotation * scalar * *a.pos;
             let b_pos = perspective * view * translation * rotation * scalar * *b.pos;
@@ -298,14 +298,13 @@ fn show_model(model: &mut Model) {
         grid.clear(' ');
         depth_buffer.clear(f32::INFINITY);
         
-
         // model.rotate_y(1.0);
     }
 }
 
 
 fn main() {
-    let mut model = Model::load("bin/phil_the_groundhog_test.obj").expect("Used valid .obj path");
+    let mut model = Model::load("bin/teapot.obj").expect("Please use valid .obj path");
     model.set_scale(0.1);
     show_model(&mut model);
 }

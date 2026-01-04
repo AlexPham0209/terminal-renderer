@@ -18,7 +18,7 @@ impl<'a> Triangle<'a> {
         let min_y = f32::min(a.y, f32::min(b.y, c.y));
         let max_x = f32::max(a.x, f32::max(b.x, c.x));
         let max_y = f32::max(a.y, f32::max(b.y, c.y));
-
+        
         let min_x = usize::clamp(min_x as usize, 0, WIDTH);
         let min_y = usize::clamp(min_y as usize, 0, HEIGHT);
         let max_x = usize::clamp(max_x as usize, 0, WIDTH);
