@@ -65,13 +65,13 @@ impl Model {
                 let vertex = vertex
                     .split("/")
                     .into_iter()
-                    .filter_map(|s| s.parse::<usize>().ok())
-                    .collect::<Vec<usize>>();
+                    .map(|s| s.parse::<usize>().ok())
+                    .collect::<Vec<Option<usize>>>();
                 
-                let pos = *vertex.get(0).unwrap();
-                let tex_coord = vertex.get(1).copied();
-                let normal = vertex.get(2).copied();
-
+                let pos = (*vertex.get(0).unwrap()).unwrap();
+                let tex_coord = *vertex.get(1).unwrap_or(&None);
+                let normal = *vertex.get(2).unwrap_or(&None);
+                    
                 let vertex = VertexData {
                     pos,
                     tex_coord,

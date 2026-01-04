@@ -326,7 +326,7 @@ fn demo() {
 
 
 fn main() {
-    let model = Model::load("bin/teapot.obj").unwrap();
+    let model = Model::load("bin/cube.obj").unwrap();
 
     for (a, b, c) in &model.data {
         
