@@ -99,17 +99,10 @@ fn rasterize_triangle(
             let depths = 1.0 / Vector3::new(a.pos.z, b.pos.z, c.pos.z);
             let depth = 1.0 / depths.dot(weights);
 
-            // // Interpolated normals
-            // let n = ((normal_1 * depths.x) * weights.x)
-            //     + ((normal_2 * depths.y) * weights.y)
-            //     + ((normal_3 * depths.z) * weights.z);
-            // let n = n * depth;
-            // let n = n.normalize();
-
             // Calculating light value
             let l = (light - normal).normalize();
             let value = (normal.dot(l) + 1.0) / 2.0;
-            let value = f32::ceil(value * ((gradient.len() - 1) as f32)) as usize;
+            let value = f32::round(value * ((gradient.len() - 1) as f32)) as usize;
             let value: char = gradient.as_bytes()[value] as char;
 
             // Calculates the depth and uses it to determine whether current pixel is has lowest depth
@@ -138,7 +131,7 @@ fn show_model(model: &mut Model) {
     let light = Vector3::new(0.0, 0.0, 2.0);
 
     // Perspective matrix
-    let fov = Angle::Degrees(45.0);
+    let fov = Angle::Degrees(90.0);
     let z_far = 10.0;
     let z_near = 0.05;
     let aspect = (WIDTH as f32) / (HEIGHT as f32);
@@ -238,16 +231,16 @@ fn show_model(model: &mut Model) {
 
                 position,
                 scale,
-            } = &model.transform;
+            } = model.transform;
 
             // Scaling matrix
-            let scalar = Matrix4::scale(*scale);
+            let scalar = Matrix4::scale(scale);
 
             // Rotation matrix
-            let rotation = Matrix4::rotation(*yaw, *pitch, *roll);
+            let rotation = Matrix4::rotation(yaw, pitch, roll);
 
             // Translation matrix
-            let translation = Matrix4::translation(*position);
+            let translation = Matrix4::translation(position);
 
             // Calculating normal vectors for each vertex (in object space)
             let normal = get_normal(*a.pos, *b.pos, *c.pos);
@@ -303,7 +296,7 @@ fn show_model(model: &mut Model) {
 
 
 fn main() {
-    let mut model = Model::load("bin/cat.obj").expect("Please use valid .obj path");
-    model.set_scale(0.01);
+    let mut model = Model::load("bin/phil_the_groundhog.obj").expect("Please use valid .obj path");
+    model.set_scale(0.1);
     show_model(&mut model);
 }
