@@ -6,7 +6,7 @@ mod vector;
 mod vertex;
 
 use core::f32;
-use std::time::Duration;
+use std::{env, fs, io::{self, Write}, path::Path, time::Duration};
 
 pub use crate::vector::vector2::Vector2;
 pub use crate::vector::vector4::Vector4;
@@ -118,7 +118,7 @@ fn rasterize_triangle(
     }
 }
 
-fn show_model(model: &mut Model) {
+fn show_model(model: &mut Model, fov: f32) {
     let mut grid = Grid::new(' ', WIDTH, HEIGHT);
     let mut depth_buffer: Grid<f32> = Grid::new(f32::INFINITY, WIDTH, HEIGHT);
 
@@ -131,7 +131,7 @@ fn show_model(model: &mut Model) {
     let light = Vector3::new(0.0, 0.0, 2.0);
 
     // Perspective matrix
-    let fov = Angle::Degrees(90.0);
+    let fov = Angle::Degrees(fov);
     let z_far = 10.0;
     let z_near = 0.05;
     let aspect = (WIDTH as f32) / (HEIGHT as f32);
@@ -296,7 +296,29 @@ fn show_model(model: &mut Model) {
 
 
 fn main() {
-    let mut model = Model::load("bin/phil_the_groundhog.obj").expect("Please use valid .obj path");
-    model.set_scale(0.1);
-    show_model(&mut model);
+    print!("Enter model path: ");
+    io::stdout().flush().unwrap();
+
+    let mut path = String::new();
+    io::stdin().read_line(&mut path).expect("Expected valid string");
+    let path = path.replace("\"", "").replace("\\", "/");
+    let path = path.trim();
+    let mut model = Model::load(&path).expect("Please use valid .obj path");
+    
+    print!("Set scale: ");
+    io::stdout().flush().unwrap();
+
+    let mut scale = String::new();
+    io::stdin().read_line(&mut scale).expect("Expected valid string");
+    let scale = scale.trim().parse::<f32>().expect("Expected float");    
+    model.set_scale(scale);
+
+    print!("Set FOV (Degrees): ");
+    io::stdout().flush().unwrap();
+
+    let mut fov = String::new();
+    io::stdin().read_line(&mut fov).expect("Expected valid string");
+    let fov = fov.trim().parse::<f32>().expect("Expected float");
+
+    show_model(&mut model, fov);
 }

@@ -1,6 +1,6 @@
-use std::{collections::HashMap, fs};
+use std::fs;
 
-use crate::{Vector2, matrix::rotation::Angle, triangle::Triangle, vector::vector3::Vector3};
+use crate::{Vector2, matrix::rotation::Angle, vector::vector3::Vector3};
 
 
 #[derive(Debug, Clone, Copy)]
