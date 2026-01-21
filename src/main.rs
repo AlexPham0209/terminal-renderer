@@ -22,11 +22,25 @@ use crate::{
     triangle::Triangle,
     vector::{vector::Vector, vector3::Vector3}, vertex::Vertex,
 };
+use clap::Parser;
 use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers, poll, read};
 pub use grid::Grid;
 
 const WIDTH: usize = 200;
 const HEIGHT: usize = 100;
+
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    #[arg(short, long)]
+    model_path: String,
+
+    #[arg(short, long)]
+    scale: f32,
+
+    #[arg(short, long)]
+    fov: f32,
+}
 
 // Make sure that points are in counter-clockwise order
 fn edge_function(a: Vector3, b: Vector3, c: Vector3) -> f32 {
@@ -102,6 +116,7 @@ fn rasterize_triangle(
             // Calculating light value
             let l = (light - normal).normalize();
             let value = (normal.dot(l) + 1.0) / 2.0;
+            // let value = f32::max(0.0, normal.dot(l));
             let value = f32::round(value * ((gradient.len() - 1) as f32)) as usize;
             let value: char = gradient.as_bytes()[value] as char;
 
@@ -296,29 +311,15 @@ fn show_model(model: &mut Model, fov: f32) {
 
 
 fn main() {
-    print!("Enter model path: ");
-    io::stdout().flush().unwrap();
+    let Args { model_path, scale, fov } = Args::parse();
 
-    let mut path = String::new();
-    io::stdin().read_line(&mut path).expect("Expected valid string");
-    let path = path.replace("\"", "").replace("\\", "/");
+    println!("{model_path}, {scale}, {fov}");
+
+    let path = model_path.replace("\"", "").replace("\\", "/");
     let path = path.trim();
     let mut model = Model::load(&path).expect("Please use valid .obj path");
     
-    print!("Set scale: ");
-    io::stdout().flush().unwrap();
-
-    let mut scale = String::new();
-    io::stdin().read_line(&mut scale).expect("Expected valid string");
-    let scale = scale.trim().parse::<f32>().expect("Expected float");    
     model.set_scale(scale);
-
-    print!("Set FOV (Degrees): ");
-    io::stdout().flush().unwrap();
-
-    let mut fov = String::new();
-    io::stdin().read_line(&mut fov).expect("Expected valid string");
-    let fov = fov.trim().parse::<f32>().expect("Expected float");
 
     show_model(&mut model, fov);
 }
