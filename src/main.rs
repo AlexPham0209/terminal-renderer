@@ -313,8 +313,6 @@ fn show_model(model: &mut Model, fov: f32) {
 fn main() {
     let Args { model_path, scale, fov } = Args::parse();
 
-    println!("{model_path}, {scale}, {fov}");
-
     let path = model_path.replace("\"", "").replace("\\", "/");
     let path = path.trim();
     let mut model = Model::load(&path).expect("Please use valid .obj path");
