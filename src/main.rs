@@ -141,7 +141,7 @@ fn show_model(model: &mut Model, fov: f32) {
     let mut camera_pitch = 0.0;
     let mut camera_yaw = 0.0;
     let mut camera_roll = 0.0;
-
+    
     // In world coordinates
     let light = Vector3::new(0.0, 0.0, 2.0);
 
@@ -282,7 +282,7 @@ fn show_model(model: &mut Model, fov: f32) {
                 normal: Some(&normal),
                 ..a
             };
-
+                
             let b = Vertex {
                 pos: &b_pos,
                 normal: Some(&normal),
