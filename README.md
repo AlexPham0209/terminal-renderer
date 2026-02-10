@@ -1,7 +1,7 @@
 # Terminal Renderer
 An ASCII rasterizer that I created in Rust. This project is heavily inspired by donut.c. Able to load .obj files using a custom loader.
 
-[Cow showcase](images/cow.gif)
+![Cow showcase](images/cow.gif)
 
 
 ## How to run
