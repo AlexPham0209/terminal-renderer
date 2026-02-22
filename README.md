@@ -15,5 +15,5 @@ cargo run -- --scale 0.1 --fov 30 --model-path 'path/to/model.obj'
 WASD - Player Movement
 Arrow keys - Camera Movement
 
-## Example Footage
-
+## Examples 
+![Teapot showcase](images/teapot.gif)
